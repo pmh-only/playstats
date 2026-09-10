@@ -81,6 +81,7 @@ export default function ArchivePage({
               aria-pressed={category === value}
               key={value}
               onClick={() => {
+                if (category === value) return;
                 setData(null);
                 setCategory(value);
               }}
@@ -98,6 +99,7 @@ export default function ArchivePage({
             aria-pressed={period === value}
             key={value}
             onClick={() => {
+              if (period === value) return;
               setData(null);
               setPeriod(value);
             }}

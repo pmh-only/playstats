@@ -1,4 +1,3 @@
-import * as d3 from "d3";
 import { useEffect, useState } from "react";
 import SiteMenu from "./SiteMenu";
 import "./EntityPage.css";
@@ -41,8 +40,8 @@ export default function EntityPage({
     );
   }
 
-  const maximum = d3.max(data.timeline, (entry) => entry.plays) || 1;
-  const height = d3.scaleLinear().domain([0, maximum]).range([0, 100]);
+  const maximum = Math.max(1, ...data.timeline.map((entry) => entry.plays));
+  const height = (value) => (value / maximum) * 100;
 
   return (
     <main className="entity-page">

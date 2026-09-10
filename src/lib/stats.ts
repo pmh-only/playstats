@@ -44,6 +44,10 @@ export interface PeriodStats {
 export interface PlayStats {
   timezone: string;
   periods: Record<StatsPeriod, PeriodStats>;
+  race: Array<{
+    date: string;
+    items: Array<{ id: string; name: string; plays: number }>;
+  }>;
 }
 
 interface RawPeriodStats {
@@ -85,7 +89,7 @@ interface StatsCacheDocument {
   updatedAt?: Date;
 }
 
-const statsCacheVersion = 1;
+const statsCacheVersion = 2;
 let cacheIndexesPromise: Promise<string> | undefined;
 
 const periodConfig: Record<
@@ -294,9 +298,25 @@ async function calculatePlayStats(
   owner: ObjectId,
   timezone: string,
 ): Promise<PlayStats> {
-  const facets = Object.fromEntries(
-    statsPeriods.flatMap((period) => buildPeriodFacets(period, timezone)),
-  );
+  const facets = {
+    ...Object.fromEntries(
+      statsPeriods.flatMap((period) => buildPeriodFacets(period, timezone)),
+    ),
+    race: [
+      {
+        $group: {
+          _id: {
+            date: {
+              $dateTrunc: { date: "$played_at", unit: "month", timezone },
+            },
+            track: "$id",
+          },
+          plays: { $sum: 1 },
+        },
+      },
+      { $sort: { "_id.date": 1 } },
+    ],
+  };
   const result = await database
     .collection("infos")
     .aggregate<Record<string, Document[]>>([
@@ -376,7 +396,52 @@ async function calculatePlayStats(
     }),
   ) as Record<StatsPeriod, PeriodStats>;
 
-  return { timezone, periods };
+  const cumulative = new Map<string, number>();
+  const raceIds = new Set<string>();
+  const raceFrames: Array<{
+    date: Date;
+    items: Array<{ id: string; plays: number }>;
+  }> = [];
+  const groupedRace = new Map<string, Document[]>();
+  for (const entry of result?.race ?? []) {
+    const key = entry._id.date.toISOString();
+    const entries = groupedRace.get(key) ?? [];
+    entries.push(entry);
+    groupedRace.set(key, entries);
+  }
+  for (const [date, entries] of groupedRace) {
+    for (const entry of entries) {
+      cumulative.set(
+        entry._id.track,
+        (cumulative.get(entry._id.track) ?? 0) + entry.plays,
+      );
+    }
+    const items = [...cumulative]
+      .map(([id, plays]) => ({ id, plays }))
+      .sort((left, right) => right.plays - left.plays || left.id.localeCompare(right.id))
+      .slice(0, 12);
+    items.forEach((item) => raceIds.add(item.id));
+    raceFrames.push({ date: new Date(date), items });
+  }
+  const raceTracks = await database
+    .collection("tracks")
+    .find(
+      { id: { $in: [...raceIds] } },
+      { projection: { _id: 0, id: 1, name: 1 } },
+    )
+    .toArray();
+  const raceNames = new Map(
+    raceTracks.map((track) => [track.id, track.name || "Unknown track"]),
+  );
+  const race = raceFrames.map((frame) => ({
+    date: frame.date.toISOString(),
+    items: frame.items.map((item) => ({
+      ...item,
+      name: raceNames.get(item.id) || "Unknown track",
+    })),
+  }));
+
+  return { timezone, periods, race };
 }
 
 function ensureStatsCacheIndexes(database: Db): Promise<string> {

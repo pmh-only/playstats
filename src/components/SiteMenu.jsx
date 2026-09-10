@@ -31,6 +31,13 @@ export default function SiteMenu({ homeHref = "/", statsHref = "/all" }) {
       rotation: -3,
       hoverStyles: { bgColor: "#b8ff57", textColor: "#080908" },
     },
+    {
+      label: "race",
+      href: `/race${query}`,
+      ariaLabel: "Watch the track play-count race",
+      rotation: -2,
+      hoverStyles: { bgColor: "#b8ff57", textColor: "#080908" },
+    },
   ];
 
   return (

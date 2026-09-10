@@ -186,8 +186,8 @@
 }
 
 @media (min-width: 900px) {
-  .bubble-menu-items .pill-col:nth-child(4):last-child {
-    margin-left: calc(100% / 3);
+  .bubble-menu-items .pill-col:nth-child(4):nth-last-child(2) {
+    margin-left: calc(100% / 6);
   }
 
   .bubble-menu-items .pill-link {
