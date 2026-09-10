@@ -113,6 +113,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: auto;
   background: rgba(8, 9, 8, 0.78);
   backdrop-filter: blur(18px);
 }
@@ -127,6 +128,7 @@
 
 .bubble-menu-items .pill-list {
   display: flex;
+  flex-wrap: wrap;
   width: min(72rem, 100%);
   margin: 0 auto;
   padding: 0 clamp(1.5rem, 5vw, 5rem);
@@ -135,7 +137,7 @@
 
 .bubble-menu-items .pill-col {
   display: flex;
-  flex: 1 1 50%;
+  flex: 0 0 calc(100% / 3);
   align-items: stretch;
   justify-content: center;
 }
@@ -149,7 +151,7 @@
   position: relative;
   display: flex;
   width: 100%;
-  min-height: clamp(9rem, 20vw, 15rem);
+  min-height: clamp(7rem, 14vw, 11rem);
   align-items: center;
   justify-content: center;
   padding: 2rem;
@@ -158,7 +160,7 @@
   background: var(--pill-bg);
   box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.18);
   color: var(--pill-color);
-  font-size: clamp(2rem, 6vw, 6rem);
+  font-size: clamp(1.5rem, 4vw, 4rem);
   font-weight: 600;
   letter-spacing: -0.06em;
   line-height: 1;

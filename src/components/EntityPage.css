@@ -1,0 +1,32 @@
+.entity-page { min-height: 100vh; min-height: 100dvh; padding: 8rem clamp(1rem, 5vw, 5rem) 4rem; background: #080908; }
+.entity-loading { display: grid; min-height: 60vh; place-items: center; color: #858980; font-family: "DM Mono", monospace; }
+.entity-hero { display: flex; gap: clamp(1.5rem, 5vw, 5rem); align-items: end; padding-bottom: 3rem; }
+.entity-hero img { width: clamp(8rem, 20vw, 18rem); aspect-ratio: 1; border-radius: 50%; object-fit: cover; }
+.entity-hero p,
+.entity-metrics span { color: #b8ff57; font-family: "DM Mono", monospace; font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase; }
+.entity-hero h1 { max-width: 14ch; margin: 0; font-size: clamp(3rem, 8vw, 8rem); letter-spacing: -0.075em; line-height: 0.88; }
+.entity-metrics { display: grid; grid-template-columns: repeat(4, 1fr); border-block: 1px solid #30342d; }
+.entity-metrics div { display: grid; gap: 1rem; padding: 1.5rem; border-right: 1px solid #30342d; }
+.entity-metrics div:last-child { border: 0; }
+.entity-metrics strong { font-family: "DM Mono", monospace; font-size: clamp(1.2rem, 3vw, 2.5rem); font-weight: 300; }
+.entity-panels { display: grid; grid-template-columns: 1.3fr 1fr; gap: 1px; margin-top: 1px; background: #30342d; }
+.entity-panels article { min-width: 0; padding: 1.5rem; background: #0d0f0c; }
+.entity-panels h2 { margin: 0 0 2rem; }
+.entity-timeline { display: flex; height: 18rem; align-items: end; gap: 0.4rem; overflow-x: auto; }
+.entity-timeline div { display: grid; min-width: 2.2rem; height: 100%; grid-template-rows: 1fr auto auto; align-items: end; gap: 0.3rem; }
+.entity-timeline div > span { display: block; min-height: 2px; background: #b8ff57; }
+.entity-timeline small,
+.entity-timeline strong,
+.entity-tracks { font-family: "DM Mono", monospace; font-size: 0.58rem; }
+.entity-timeline small { color: #777b73; writing-mode: vertical-rl; }
+.entity-tracks { margin: 0; padding: 0; list-style: none; }
+.entity-tracks li { display: grid; grid-template-columns: 2rem 1fr auto; gap: 1rem; padding: 0.8rem 0; border-bottom: 1px solid #252822; }
+.entity-tracks span { color: #b8ff57; }
+.entity-tracks a { overflow: hidden; color: #f4f1e8; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+.entity-tracks a:hover { color: #b8ff57; }
+@media (max-width: 700px) {
+  .entity-hero { align-items: center; }
+  .entity-metrics { grid-template-columns: repeat(2, 1fr); }
+  .entity-metrics div:nth-child(2) { border-right: 0; }
+  .entity-panels { grid-template-columns: 1fr; }
+}

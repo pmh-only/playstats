@@ -1,0 +1,32 @@
+---
+import ArchivePage from "../components/ArchivePage.jsx";
+
+const token = Astro.url.searchParams.get("token");
+const suffix = token ? `?token=${encodeURIComponent(token)}` : "";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Playstats | Longest sessions</title>
+  </head>
+  <body>
+    <ArchivePage
+      client:load
+      type="sessions"
+      dataEndpoint={`/data/sessions${token ? `?token=${encodeURIComponent(token)}` : ""}`}
+      homeHref={`/${suffix}`}
+      statsHref={`/all${suffix}`}
+    />
+  </body>
+</html>
+
+<style is:global>
+  @import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Manrope:wght@400;500;600;700;800&display=swap");
+  :root { color-scheme: dark; font-family: "Manrope", sans-serif; background: #080908; color: #f4f1e8; }
+  * { box-sizing: border-box; }
+  html, body { min-width: 320px; min-height: 100%; margin: 0; background: #080908; }
+  button { font: inherit; }
+</style>

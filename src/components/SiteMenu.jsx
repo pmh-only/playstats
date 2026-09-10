@@ -1,6 +1,7 @@
 import BubbleMenu from "./BubbleMenu";
 
 export default function SiteMenu({ homeHref = "/", statsHref = "/all" }) {
+  const query = statsHref.includes("?") ? statsHref.slice(statsHref.indexOf("?")) : "";
   const items = [
     {
       label: "albums",
@@ -10,11 +11,68 @@ export default function SiteMenu({ homeHref = "/", statsHref = "/all" }) {
       hoverStyles: { bgColor: "#b8ff57", textColor: "#080908" },
     },
     {
-      label: "all stats",
+      label: "stats",
       href: statsHref,
       ariaLabel: "View all listening statistics",
       rotation: 4,
       hoverStyles: { bgColor: "#b8ff57", textColor: "#080908" },
+    },
+    {
+      label: "songs",
+      href: `/top/songs${query}`,
+      ariaLabel: "View top songs",
+      rotation: 3,
+      hoverStyles: { bgColor: "#b8ff57", textColor: "#080908" },
+    },
+    {
+      label: "artists",
+      href: `/top/artists${query}`,
+      ariaLabel: "View top artists",
+      rotation: -3,
+      hoverStyles: { bgColor: "#b8ff57", textColor: "#080908" },
+    },
+    {
+      label: "top albums",
+      href: `/top/albums${query}`,
+      ariaLabel: "View ranked albums",
+      rotation: 3,
+      hoverStyles: { bgColor: "#b8ff57", textColor: "#080908" },
+    },
+    {
+      label: "sessions",
+      href: `/sessions${query}`,
+      ariaLabel: "View longest sessions",
+      rotation: -3,
+      hoverStyles: { bgColor: "#b8ff57", textColor: "#080908" },
+    },
+    {
+      label: "search",
+      href: `/search${query}`,
+      ariaLabel: "Search the listening archive",
+      rotation: 2,
+      hoverStyles: { bgColor: "#b8ff57", textColor: "#080908" },
+    },
+    {
+      label: "affinity",
+      href: `/affinity${query}`,
+      ariaLabel: "Compare listening affinity",
+      rotation: -2,
+      hoverStyles: { bgColor: "#b8ff57", textColor: "#080908" },
+    },
+    {
+      label: "share",
+      href: "#share",
+      ariaLabel: "Share this page",
+      rotation: 2,
+      hoverStyles: { bgColor: "#b8ff57", textColor: "#080908" },
+      onClick: (event) => {
+        event.preventDefault();
+        if (navigator.share) {
+          navigator.share({ title: document.title, url: window.location.href });
+        } else {
+          navigator.clipboard.writeText(window.location.href);
+        }
+      },
     },
   ];
 
