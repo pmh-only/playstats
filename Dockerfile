@@ -27,6 +27,6 @@ COPY --from=build /app/dist ./dist
 
 EXPOSE 3000
 
-USER node
+USER 1000
 
 CMD ["node", "./dist/server/entry.mjs"]
