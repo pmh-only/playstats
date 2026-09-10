@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { mat4, quat, vec2, vec3 } from "gl-matrix";
+import CountUp from "./CountUp";
 import "./InfiniteMenu.css";
 
 const discVertShaderSource = `#version 300 es
@@ -769,7 +770,16 @@ export default function InfiniteMenu({
             <p>{activeItem.artist}</p>
           </div>
           <p className={`play-count ${isMoving ? "inactive" : "active"}`}>
-            <strong>{activeItem.playCount.toLocaleString()}</strong>
+            <strong>
+              <CountUp
+                key={activeItem.id}
+                from={0}
+                to={activeItem.playCount}
+                separator=","
+                duration={1}
+                className="count-up-text"
+              />
+            </strong>
             <span>plays</span>
           </p>
           <button
