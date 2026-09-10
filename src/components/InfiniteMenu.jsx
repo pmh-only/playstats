@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { mat4, quat, vec2, vec3 } from "gl-matrix";
 import CountUp from "./CountUp";
+import Particles from "./Particles";
 import "./InfiniteMenu.css";
+
+const backgroundParticleColors = ["#b8ff57", "#f4f1e8", "#6f746a"];
 
 const discVertShaderSource = `#version 300 es
 uniform mat4 uWorldMatrix;
@@ -571,7 +574,7 @@ class InfiniteGridMenu {
     gl.useProgram(this.program);
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
-    gl.clearColor(0.03, 0.035, 0.03, 1);
+    gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.uniformMatrix4fv(this.locations.world, false, this.worldMatrix);
     gl.uniformMatrix4fv(this.locations.view, false, this.camera.view);
@@ -756,6 +759,15 @@ export default function InfiniteMenu({
       className="infinite-menu"
       style={{ backgroundColor, "--menu-background": backgroundColor }}
     >
+      <Particles
+        className="menu-particles"
+        particleColors={backgroundParticleColors}
+        particleCount={120}
+        particleSpread={12}
+        speed={0.04}
+        particleBaseSize={60}
+        alphaParticles
+      />
       <canvas
         ref={canvasRef}
         aria-label="Interactive globe of the top one hundred albums"

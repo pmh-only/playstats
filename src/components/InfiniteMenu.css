@@ -7,6 +7,7 @@
 .infinite-menu::after {
   position: absolute;
   inset: 0;
+  z-index: 2;
   background:
     radial-gradient(
       circle at 50% 50%,
@@ -24,8 +25,9 @@
   pointer-events: none;
 }
 
-.infinite-menu canvas {
+.infinite-menu > canvas {
   position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   cursor: grab;
@@ -33,8 +35,15 @@
   touch-action: none;
 }
 
-.infinite-menu canvas:active {
+.infinite-menu > canvas:active {
   cursor: grabbing;
+}
+
+.menu-particles {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .album-caption,
