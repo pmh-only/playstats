@@ -44,13 +44,19 @@
   font-size: 0.72rem;
 }
 
-.archive-periods {
+.archive-periods,
+.archive-categories {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   margin: 3rem 0 2rem;
 }
 
+.archive-categories {
+  margin-bottom: -2rem;
+}
+
+.archive-categories button,
 .archive-periods button {
   padding: 0.7rem 0.9rem;
   border: 1px solid #30342d;
@@ -61,6 +67,9 @@
   cursor: pointer;
 }
 
+.archive-categories button.active,
+.archive-categories button:hover,
+.archive-categories button:focus-visible,
 .archive-periods button.active,
 .archive-periods button:hover,
 .archive-periods button:focus-visible {

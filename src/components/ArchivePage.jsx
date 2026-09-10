@@ -14,6 +14,7 @@ const titles = {
   songs: ["Top songs", "The tracks that keep returning."],
   artists: ["Top artists", "The voices defining your archive."],
   albums: ["Top albums", "Records measured by repeat gravity."],
+  tops: ["Tops", "Your listening archive, ranked three ways."],
   sessions: ["Longest sessions", "The stretches where listening never stopped."],
 };
 
@@ -31,6 +32,7 @@ export default function ArchivePage({
   statsHref,
 }) {
   const [period, setPeriod] = useState("month");
+  const [category, setCategory] = useState("songs");
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
 
@@ -38,6 +40,7 @@ export default function ArchivePage({
     const controller = new AbortController();
     const endpoint = new URL(dataEndpoint, window.location.origin);
     endpoint.searchParams.set("period", period);
+    if (type === "tops") endpoint.searchParams.set("type", category);
     endpoint.searchParams.set(
       "timezone",
       Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
@@ -53,12 +56,13 @@ export default function ArchivePage({
         if (cause.name !== "AbortError") setError(cause.message);
       });
     return () => controller.abort();
-  }, [dataEndpoint, period]);
+  }, [category, dataEndpoint, period, type]);
 
   const [title, subtitle] = titles[type];
   const records = type === "sessions" ? data?.sessions : data?.items;
   const query = statsHref.includes("?") ? statsHref.slice(statsHref.indexOf("?")) : "";
-  const detailType = type === "songs" ? "song" : type === "artists" ? "artist" : "album";
+  const rankingType = type === "tops" ? category : type;
+  const detailType = rankingType === "songs" ? "song" : rankingType === "artists" ? "artist" : "album";
 
   return (
     <main className="archive-page">
@@ -68,6 +72,24 @@ export default function ArchivePage({
         <h1>{title}</h1>
         <span>{subtitle}</span>
       </section>
+      {type === "tops" && (
+        <div className="archive-categories" aria-label="Ranking category">
+          {["songs", "artists", "albums"].map((value) => (
+            <button
+              type="button"
+              className={category === value ? "active" : ""}
+              aria-pressed={category === value}
+              key={value}
+              onClick={() => {
+                setData(null);
+                setCategory(value);
+              }}
+            >
+              {value}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="archive-periods" aria-label="Statistics period">
         {periods.map(([value, label]) => (
           <button
@@ -105,7 +127,7 @@ export default function ArchivePage({
                 <strong>
                   <a href={`/${detailType}/${item.id}${query}`}>{item.name}</a>
                 </strong>
-                <small>{item.artists?.join(", ") || type.slice(0, -1)}</small>
+                <small>{item.artists?.join(", ") || rankingType.slice(0, -1)}</small>
               </div>
               <div className="ranking-metric">
                 <strong>{item.plays.toLocaleString()}</strong>

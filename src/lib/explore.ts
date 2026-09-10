@@ -115,6 +115,26 @@ export async function getRankings(
     .find({ id: { $in: artistIds } }, { projection: { _id: 0, id: 1, name: 1 } })
     .toArray();
   const artistNames = new Map(artists.map((artist) => [artist.id, artist.name]));
+  const albumIds = type === "songs"
+    ? [...new Set(results.map((entry) => entry.albumId).filter(Boolean))]
+    : [];
+  const albums = albumIds.length > 0
+    ? await database
+        .collection("albums")
+        .find(
+          { id: { $in: albumIds } },
+          { projection: { _id: 0, id: 1, images: 1 } },
+        )
+        .toArray()
+    : [];
+  const albumImages = new Map(
+    albums.map((album) => [
+      album.id,
+      [...(album.images ?? [])].sort(
+        (left, right) => (right.width ?? 0) - (left.width ?? 0),
+      )[0]?.url,
+    ]),
+  );
 
   return {
     timezone,
@@ -124,9 +144,11 @@ export async function getRankings(
       artists: (entry.artistIds ?? [])
         .map((id: string) => artistNames.get(id))
         .filter(Boolean),
-      image: [...(entry.images ?? [])].sort(
-        (left, right) => (right.width ?? 0) - (left.width ?? 0),
-      )[0]?.url,
+      image:
+        (type === "songs" ? albumImages.get(entry.albumId) : undefined) ??
+        [...(entry.images ?? [])].sort(
+          (left, right) => (right.width ?? 0) - (left.width ?? 0),
+        )[0]?.url,
       plays: entry.plays,
       durationMs: entry.durationMs,
       firstPlayedAt: entry.firstPlayedAt,
@@ -221,7 +243,16 @@ export async function getEntityDetails(
   const eventField = type === "song" ? "id" : type === "artist" ? "primaryArtistId" : "albumId";
   const entity = await database.collection(collection).findOne(
     { id },
-    { projection: { _id: 0, id: 1, name: 1, images: 1, artists: 1 } },
+    {
+      projection: {
+        _id: 0,
+        id: 1,
+        name: 1,
+        images: 1,
+        artists: 1,
+        album: 1,
+      },
+    },
   );
   if (!entity) return { timezone, entity: null };
 
@@ -302,7 +333,14 @@ export async function getEntityDetails(
       },
     ])
     .toArray();
-  const image = [...(entity.images ?? [])].sort(
+  const songAlbum =
+    type === "song" && entity.album
+      ? await database.collection("albums").findOne(
+          { id: entity.album },
+          { projection: { _id: 0, images: 1 } },
+        )
+      : null;
+  const image = [...(songAlbum?.images ?? entity.images ?? [])].sort(
     (left, right) => (right.width ?? 0) - (left.width ?? 0),
   )[0]?.url;
 
