@@ -144,6 +144,10 @@
   white-space: nowrap;
 }
 
+.metric-grid article:nth-child(2) strong {
+  font-size: clamp(1.5rem, 3vw, 3.6rem);
+}
+
 .metric-grid small {
   color: #5e625b;
   font-size: 0.55rem;
@@ -353,6 +357,10 @@
 
   .metric-grid strong {
     font-size: clamp(1.8rem, 9vw, 3rem);
+  }
+
+  .metric-grid article:nth-child(2) strong {
+    font-size: clamp(1.45rem, 6.2vw, 2.2rem);
   }
 
   .chart-grid-layout {
