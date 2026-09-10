@@ -3,6 +3,7 @@ import AlbumExplorer from "../components/AlbumExplorer.jsx";
 import { getTopAlbums, type AlbumStats } from "../lib/albums";
 
 const token = Astro.url.searchParams.get("token");
+const homeHref = token ? `/?token=${encodeURIComponent(token)}` : "/";
 const statsHref = token ? `/all?token=${encodeURIComponent(token)}` : "/all";
 let albums: AlbumStats[] = [];
 let error = "";
@@ -40,6 +41,7 @@ try {
       client:load
       albums={albums}
       error={error}
+      homeHref={homeHref}
       statsHref={statsHref}
     />
   </body>

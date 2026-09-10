@@ -16,18 +16,8 @@
   display: flex;
   min-height: 5.5rem;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   border-bottom: 1px solid #30342d;
-}
-
-.stats-wordmark,
-.stats-error a {
-  color: #f4f1e8;
-  font-family: "DM Mono", monospace;
-  font-size: 0.76rem;
-  font-weight: 500;
-  letter-spacing: 0.13em;
-  text-decoration: none;
 }
 
 .stats-header > div {

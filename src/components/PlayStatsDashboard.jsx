@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 import { useEffect, useRef, useState } from "react";
 import CountUp from "./CountUp";
+import SiteMenu from "./SiteMenu";
 import "./PlayStatsDashboard.css";
 
 const periods = [
@@ -271,16 +272,23 @@ function ArtistChart({ data }) {
   );
 }
 
-export default function PlayStatsDashboard({ stats, error, homeHref = "/" }) {
+export default function PlayStatsDashboard({
+  stats,
+  error,
+  homeHref = "/",
+  statsHref = "/all",
+}) {
   const [period, setPeriod] = useState("today");
 
   if (error || !stats) {
     return (
-      <main className="stats-error">
-        <a href={homeHref}>PLAY/STATS</a>
-        <p>Statistics unavailable</p>
-        <h1>{error}</h1>
-      </main>
+      <>
+        <SiteMenu homeHref={homeHref} statsHref={statsHref} />
+        <main className="stats-error">
+          <p>Statistics unavailable</p>
+          <h1>{error}</h1>
+        </main>
+      </>
     );
   }
 
@@ -288,10 +296,8 @@ export default function PlayStatsDashboard({ stats, error, homeHref = "/" }) {
 
   return (
     <main className="stats-page">
+      <SiteMenu homeHref={homeHref} statsHref={statsHref} />
       <header className="stats-header">
-        <a href={homeHref} className="stats-wordmark">
-          PLAY/STATS
-        </a>
         <div>
           <span>Listening archive</span>
           <span>{stats.timezone}</span>

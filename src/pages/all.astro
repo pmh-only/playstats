@@ -4,6 +4,7 @@ import { getPlayStats, type PlayStats } from "../lib/stats";
 
 const token = Astro.url.searchParams.get("token");
 const homeHref = token ? `/?token=${encodeURIComponent(token)}` : "/";
+const statsHref = token ? `/all?token=${encodeURIComponent(token)}` : "/all";
 let stats: PlayStats | null = null;
 let error = "";
 
@@ -36,7 +37,13 @@ try {
     <title>Playstats | Listening statistics</title>
   </head>
   <body>
-    <PlayStatsDashboard client:load stats={stats} error={error} homeHref={homeHref} />
+    <PlayStatsDashboard
+      client:load
+      stats={stats}
+      error={error}
+      homeHref={homeHref}
+      statsHref={statsHref}
+    />
   </body>
 </html>
 
