@@ -766,6 +766,8 @@ export default function InfiniteMenu({
         particleSpread={10}
         speed={0.1}
         particleBaseSize={120}
+        moveParticlesOnHover
+        particleHoverFactor={1.5}
       />
       <canvas
         ref={canvasRef}

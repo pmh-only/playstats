@@ -138,7 +138,7 @@ export default function Particles({
     };
 
     if (moveParticlesOnHover) {
-      container.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("pointermove", handleMouseMove);
     }
 
     const positions = new Float32Array(particleCount * 3);
@@ -235,7 +235,7 @@ export default function Particles({
     return () => {
       window.removeEventListener("resize", resize);
       if (moveParticlesOnHover) {
-        container.removeEventListener("mousemove", handleMouseMove);
+        window.removeEventListener("pointermove", handleMouseMove);
       }
       cancelAnimationFrame(animationFrameId);
       if (container.contains(gl.canvas)) container.removeChild(gl.canvas);
