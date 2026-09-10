@@ -1,4 +1,4 @@
-import type { Document } from "mongodb";
+import type { Db, Document, ObjectId } from "mongodb";
 import { findStatsUser, getDatabase } from "./database";
 
 export const statsPeriods = ["today", "week", "month", "year", "all"] as const;
@@ -75,6 +75,18 @@ interface RawPeriodStats {
     durationMs: number;
   }>;
 }
+
+interface StatsCacheDocument {
+  owner: ObjectId;
+  timezone: string;
+  version: number;
+  stats?: PlayStats;
+  requestedAt: Date;
+  updatedAt?: Date;
+}
+
+const statsCacheVersion = 1;
+let cacheIndexesPromise: Promise<string> | undefined;
 
 const periodConfig: Record<
   StatsPeriod,
@@ -262,16 +274,9 @@ function buildPeriodFacets(
   ];
 }
 
-export async function getPlayStats(
-  publicToken?: string,
-  requestedTimezone?: string,
-): Promise<PlayStats | null> {
-  const database = await getDatabase();
-  const user = await findStatsUser(database, publicToken);
-  if (!user) return null;
-
+function resolveTimezone(...candidates: Array<string | undefined>): string {
   let timezone = "UTC";
-  for (const candidate of [requestedTimezone, user.settings?.timezone]) {
+  for (const candidate of candidates) {
     if (!candidate) continue;
     try {
       new Intl.DateTimeFormat("en-US", { timeZone: candidate }).format();
@@ -281,6 +286,14 @@ export async function getPlayStats(
       // Ignore invalid client or persisted timezone names.
     }
   }
+  return timezone;
+}
+
+async function calculatePlayStats(
+  database: Db,
+  owner: ObjectId,
+  timezone: string,
+): Promise<PlayStats> {
   const facets = Object.fromEntries(
     statsPeriods.flatMap((period) => buildPeriodFacets(period, timezone)),
   );
@@ -289,7 +302,7 @@ export async function getPlayStats(
     .aggregate<Record<string, Document[]>>([
       {
         $match: {
-          owner: user._id,
+          owner,
           blacklistedBy: { $exists: false },
           played_at: { $type: "date" },
           id: { $type: "string" },
@@ -364,4 +377,131 @@ export async function getPlayStats(
   ) as Record<StatsPeriod, PeriodStats>;
 
   return { timezone, periods };
+}
+
+function ensureStatsCacheIndexes(database: Db): Promise<string> {
+  cacheIndexesPromise ??= database
+    .collection("playstatsStatsCache")
+    .createIndex(
+      { owner: 1, timezone: 1, version: 1 },
+      { unique: true, name: "owner_timezone_version" },
+    )
+    .catch((error) => {
+      cacheIndexesPromise = undefined;
+      throw error;
+    });
+  return cacheIndexesPromise;
+}
+
+export async function getPlayStats(
+  publicToken?: string,
+  requestedTimezone?: string,
+): Promise<PlayStats | null> {
+  const database = await getDatabase();
+  const user = await findStatsUser(database, publicToken);
+  if (!user) return null;
+  const timezone = resolveTimezone(
+    requestedTimezone,
+    user.settings?.timezone,
+    "UTC",
+  );
+  return calculatePlayStats(database, user._id, timezone);
+}
+
+export async function getCachedPlayStats(
+  publicToken?: string,
+  requestedTimezone?: string,
+): Promise<PlayStats | null> {
+  const database = await getDatabase();
+  const user = await findStatsUser(database, publicToken);
+  if (!user) return null;
+  const timezone = resolveTimezone(
+    requestedTimezone,
+    user.settings?.timezone,
+    "UTC",
+  );
+  const cache = database.collection<StatsCacheDocument>("playstatsStatsCache");
+  await ensureStatsCacheIndexes(database);
+
+  const key = { owner: user._id, timezone, version: statsCacheVersion };
+  const cached = await cache.findOne(key);
+  await cache.updateOne(
+    key,
+    {
+      $set: { requestedAt: new Date() },
+      $setOnInsert: key,
+    },
+    { upsert: true },
+  );
+  if (cached?.stats) return cached.stats;
+
+  const stats = await calculatePlayStats(database, user._id, timezone);
+  await cache.updateOne(key, {
+    $set: { stats, requestedAt: new Date(), updatedAt: new Date() },
+  });
+  return stats;
+}
+
+export async function refreshStatsCache(): Promise<number> {
+  const database = await getDatabase();
+  await ensureStatsCacheIndexes(database);
+  const cache = database.collection<StatsCacheDocument>("playstatsStatsCache");
+  const users = await database
+    .collection<{
+      _id: ObjectId;
+      settings?: { timezone?: string };
+    }>("users")
+    .find({}, { projection: { _id: 1, "settings.timezone": 1 } })
+    .toArray();
+  const requestedSince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const requested = await cache
+    .find(
+      { version: statsCacheVersion, requestedAt: { $gte: requestedSince } },
+      { projection: { owner: 1, timezone: 1 } },
+    )
+    .toArray();
+  const targets = new Map<string, { owner: ObjectId; timezone: string }>();
+
+  for (const user of users) {
+    for (const timezone of [
+      process.env.TIMEZONE,
+      user.settings?.timezone,
+      "UTC",
+    ]) {
+      const resolved = resolveTimezone(timezone, "UTC");
+      targets.set(`${user._id.toHexString()}:${resolved}`, {
+        owner: user._id,
+        timezone: resolved,
+      });
+    }
+  }
+  for (const entry of requested) {
+    targets.set(`${entry.owner.toHexString()}:${entry.timezone}`, {
+      owner: entry.owner,
+      timezone: entry.timezone,
+    });
+  }
+
+  for (const target of targets.values()) {
+    const stats = await calculatePlayStats(
+      database,
+      target.owner,
+      target.timezone,
+    );
+    const key = {
+      owner: target.owner,
+      timezone: target.timezone,
+      version: statsCacheVersion,
+    };
+    await cache.updateOne(
+      key,
+      {
+        $set: { stats, updatedAt: new Date() },
+        $setOnInsert: { ...key, requestedAt: new Date() },
+      },
+      { upsert: true },
+    );
+  }
+
+  return targets.size;
 }

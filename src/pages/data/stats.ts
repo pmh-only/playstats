@@ -1,12 +1,12 @@
 import type { APIRoute } from "astro";
-import { getPlayStats } from "../../lib/stats";
+import { getCachedPlayStats } from "../../lib/stats";
 
 export const GET: APIRoute = async ({ url }) => {
   const token = url.searchParams.get("token") ?? undefined;
   const timezone = url.searchParams.get("timezone") ?? undefined;
 
   try {
-    const stats = await getPlayStats(token, timezone);
+    const stats = await getCachedPlayStats(token, timezone);
     if (!stats) {
       return Response.json(
         {
