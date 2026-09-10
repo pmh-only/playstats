@@ -34,7 +34,16 @@ function formatListeningTime(durationMs) {
   return hours > 0 ? `${hours.toLocaleString()}h ${minutes}m` : `${minutes}m`;
 }
 
-function ActivityChart({ data, period, timezone }) {
+function ActivityChart({
+  data,
+  period,
+  timezone,
+  valueKey = "plays",
+  divisor = 1,
+  valueLabel = "plays",
+  ariaLabel = "Listening activity over time",
+  color = "#b8ff57",
+}) {
   const containerRef = useRef(null);
   const width = useElementWidth(containerRef);
   const height = 290;
@@ -42,6 +51,7 @@ function ActivityChart({ data, period, timezone }) {
   const points = data.map((entry) => ({
     ...entry,
     date: new Date(entry.date),
+    value: entry[valueKey] / divisor,
   }));
 
   if (points.length === 0) {
@@ -59,19 +69,19 @@ function ActivityChart({ data, period, timezone }) {
     .range([margin.left, width - margin.right]);
   const y = d3
     .scaleLinear()
-    .domain([0, d3.max(points, (entry) => entry.plays) || 1])
+    .domain([0, d3.max(points, (entry) => entry.value) || 1])
     .nice()
     .range([height - margin.bottom, margin.top]);
   const area = d3
     .area()
     .x((entry) => x(entry.date))
     .y0(height - margin.bottom)
-    .y1((entry) => y(entry.plays))
+    .y1((entry) => y(entry.value))
     .curve(d3.curveMonotoneX)(points);
   const line = d3
     .line()
     .x((entry) => x(entry.date))
-    .y((entry) => y(entry.plays))
+    .y((entry) => y(entry.value))
     .curve(d3.curveMonotoneX)(points);
   const formatTick = new Intl.DateTimeFormat("en-US", {
     timeZone: timezone,
@@ -83,6 +93,9 @@ function ActivityChart({ data, period, timezone }) {
           ? { year: "numeric" }
           : { month: "short", day: "numeric" }),
   }).format;
+  const gradientId = `${valueKey}-fill`;
+  const formatValue = (value) =>
+    value >= 1000 ? d3.format(".3~s")(value) : Math.round(value).toLocaleString();
 
   return (
     <div className="chart-frame" ref={containerRef}>
@@ -90,12 +103,12 @@ function ActivityChart({ data, period, timezone }) {
         className="stats-chart"
         viewBox={`0 0 ${width} ${height}`}
         role="img"
-        aria-label="Listening activity over time"
+        aria-label={ariaLabel}
       >
         <defs>
-          <linearGradient id="activity-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#b8ff57" stopOpacity="0.38" />
-            <stop offset="100%" stopColor="#b8ff57" stopOpacity="0" />
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.34" />
+            <stop offset="100%" stopColor={color} stopOpacity="0" />
           </linearGradient>
         </defs>
         {y.ticks(4).map((tick) => (
@@ -108,7 +121,7 @@ function ActivityChart({ data, period, timezone }) {
               y2={y(tick)}
             />
             <text className="chart-axis" x={margin.left - 10} y={y(tick) + 4}>
-              {tick}
+              {formatValue(tick)}
             </text>
           </g>
         ))}
@@ -122,17 +135,18 @@ function ActivityChart({ data, period, timezone }) {
             {formatTick(tick)}
           </text>
         ))}
-        <path d={area} fill="url(#activity-fill)" />
-        <path className="activity-line" d={line} />
+        <path d={area} fill={`url(#${gradientId})`} />
+        <path className="activity-line" d={line} style={{ stroke: color }} />
         {points.map((entry) => (
           <circle
             key={entry.date.toISOString()}
             className="activity-point"
             cx={x(entry.date)}
-            cy={y(entry.plays)}
+            cy={y(entry.value)}
             r="3"
+            style={{ stroke: color }}
           >
-            <title>{`${formatTick(entry.date)}: ${entry.plays.toLocaleString()} plays`}</title>
+            <title>{`${formatTick(entry.date)}: ${formatValue(entry.value)} ${valueLabel}`}</title>
           </circle>
         ))}
       </svg>
@@ -140,14 +154,14 @@ function ActivityChart({ data, period, timezone }) {
   );
 }
 
-function HourChart({ data }) {
+function DistributionChart({ data, indexKey, labelFor, ariaLabel }) {
   const containerRef = useRef(null);
   const width = useElementWidth(containerRef);
   const height = 290;
   const margin = { top: 20, right: 14, bottom: 38, left: 36 };
   const x = d3
     .scaleBand()
-    .domain(data.map((entry) => entry.hour))
+    .domain(data.map((entry) => entry[indexKey]))
     .range([margin.left, width - margin.right])
     .padding(0.22);
   const y = d3
@@ -162,7 +176,7 @@ function HourChart({ data }) {
         className="stats-chart"
         viewBox={`0 0 ${width} ${height}`}
         role="img"
-        aria-label="Listening distribution by hour of day"
+        aria-label={ariaLabel}
       >
         {y.ticks(4).map((tick) => (
           <line
@@ -177,26 +191,26 @@ function HourChart({ data }) {
         {data.map((entry) => (
           <rect
             className="hour-bar"
-            key={entry.hour}
-            x={x(entry.hour)}
+            key={entry[indexKey]}
+            x={x(entry[indexKey])}
             y={y(entry.plays)}
             width={x.bandwidth()}
             height={height - margin.bottom - y(entry.plays)}
             rx="2"
           >
-            <title>{`${String(entry.hour).padStart(2, "0")}:00: ${entry.plays.toLocaleString()} plays`}</title>
+            <title>{`${labelFor(entry[indexKey])}: ${entry.plays.toLocaleString()} plays`}</title>
           </rect>
         ))}
         {data
-          .filter((entry) => entry.hour % 3 === 0)
+          .filter((_, index) => data.length <= 7 || index % 3 === 0)
           .map((entry) => (
             <text
               className="chart-axis x-axis"
-              key={entry.hour}
-              x={(x(entry.hour) ?? 0) + x.bandwidth() / 2}
+              key={entry[indexKey]}
+              x={(x(entry[indexKey]) ?? 0) + x.bandwidth() / 2}
               y={height - 12}
             >
-              {String(entry.hour).padStart(2, "0")}
+              {labelFor(entry[indexKey])}
             </text>
           ))}
       </svg>
@@ -204,7 +218,7 @@ function HourChart({ data }) {
   );
 }
 
-function ArtistChart({ data }) {
+function RankingChart({ data, ariaLabel, emptyLabel }) {
   const containerRef = useRef(null);
   const width = useElementWidth(containerRef);
   const rowHeight = 42;
@@ -221,7 +235,7 @@ function ArtistChart({ data }) {
     .padding(0.3);
 
   if (data.length === 0) {
-    return <div className="chart-empty">No artists in this period.</div>;
+    return <div className="chart-empty">No {emptyLabel} in this period.</div>;
   }
 
   return (
@@ -230,22 +244,22 @@ function ArtistChart({ data }) {
         className="stats-chart artist-chart"
         viewBox={`0 0 ${width} ${height}`}
         role="img"
-        aria-label="Most played artists"
+        aria-label={ariaLabel}
       >
-        {data.map((artist, index) => (
-          <g key={artist.id}>
-            <text className="artist-rank" x="0" y={(y(artist.id) ?? 0) + 15}>
+        {data.map((item, index) => (
+          <g key={item.id}>
+            <text className="artist-rank" x="0" y={(y(item.id) ?? 0) + 15}>
               {String(index + 1).padStart(2, "0")}
             </text>
-            <text className="artist-name" x="32" y={(y(artist.id) ?? 0) + 15}>
-              {artist.name.length > 19
-                ? `${artist.name.slice(0, 18)}…`
-                : artist.name}
+            <text className="artist-name" x="32" y={(y(item.id) ?? 0) + 15}>
+              {item.name.length > 19
+                ? `${item.name.slice(0, 18)}…`
+                : item.name}
             </text>
             <rect
               className="artist-bar-track"
               x={labelWidth}
-              y={y(artist.id)}
+              y={y(item.id)}
               width={width - labelWidth - 54}
               height={y.bandwidth()}
               rx={y.bandwidth() / 2}
@@ -253,17 +267,17 @@ function ArtistChart({ data }) {
             <rect
               className="artist-bar"
               x={labelWidth}
-              y={y(artist.id)}
-              width={Math.max(2, x(artist.plays) - labelWidth)}
+              y={y(item.id)}
+              width={Math.max(2, x(item.plays) - labelWidth)}
               height={y.bandwidth()}
               rx={y.bandwidth() / 2}
             />
             <text
               className="artist-value"
               x={width - 4}
-              y={(y(artist.id) ?? 0) + 15}
+              y={(y(item.id) ?? 0) + 15}
             >
-              {artist.plays.toLocaleString()}
+              {item.plays.toLocaleString()}
             </text>
           </g>
         ))}
@@ -273,14 +287,36 @@ function ArtistChart({ data }) {
 }
 
 export default function PlayStatsDashboard({
-  stats,
-  error,
+  dataEndpoint,
   homeHref = "/",
   statsHref = "/all",
 }) {
   const [period, setPeriod] = useState("today");
+  const [stats, setStats] = useState(null);
+  const [error, setError] = useState("");
 
-  if (error || !stats) {
+  useEffect(() => {
+    const controller = new AbortController();
+    const loadStats = async () => {
+      const timezone =
+        Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+      const endpoint = new URL(dataEndpoint, window.location.origin);
+      endpoint.searchParams.set("timezone", timezone);
+      const response = await fetch(endpoint, { signal: controller.signal });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error);
+      setStats(payload);
+    };
+
+    loadStats().catch((cause) => {
+      if (cause.name !== "AbortError") {
+        setError(cause.message || "Listening statistics are temporarily unavailable.");
+      }
+    });
+    return () => controller.abort();
+  }, [dataEndpoint]);
+
+  if (error) {
     return (
       <>
         <SiteMenu homeHref={homeHref} statsHref={statsHref} />
@@ -292,18 +328,23 @@ export default function PlayStatsDashboard({
     );
   }
 
+  if (!stats) {
+    return (
+      <main className="stats-page">
+        <SiteMenu homeHref={homeHref} statsHref={statsHref} />
+        <div className="stats-loading" role="status">
+          <span>Synchronizing local time</span>
+          <strong>Measuring your listening archive.</strong>
+        </div>
+      </main>
+    );
+  }
+
   const current = stats.periods[period];
 
   return (
     <main className="stats-page">
       <SiteMenu homeHref={homeHref} statsHref={statsHref} />
-      <header className="stats-header">
-        <div>
-          <span>Listening archive</span>
-          <span>{stats.timezone}</span>
-        </div>
-      </header>
-
       <section className="stats-intro">
         <div>
           <p>Playback intelligence / 01</p>
@@ -384,26 +425,107 @@ export default function PlayStatsDashboard({
           />
         </article>
 
-        <article className="chart-card artists-card">
+        <article className="chart-card">
           <div className="chart-heading">
             <div>
-              <span>02 / Ranking</span>
+              <span>02 / Duration</span>
+              <h2>Time invested</h2>
+            </div>
+            <p>Minutes per interval</p>
+          </div>
+          <ActivityChart
+            data={current.timeline}
+            period={period}
+            timezone={stats.timezone}
+            valueKey="durationMs"
+            divisor={60000}
+            valueLabel="minutes"
+            ariaLabel="Listening time over time"
+            color="#f4f1e8"
+          />
+        </article>
+
+        <article className="chart-card">
+          <div className="chart-heading">
+            <div>
+              <span>03 / Discovery</span>
+              <h2>Unique tracks found</h2>
+            </div>
+            <p>Tracks per interval</p>
+          </div>
+          <ActivityChart
+            data={current.timeline}
+            period={period}
+            timezone={stats.timezone}
+            valueKey="tracks"
+            valueLabel="unique tracks"
+            ariaLabel="Unique tracks over time"
+            color="#9b9e96"
+          />
+        </article>
+
+        <article className="chart-card">
+          <div className="chart-heading">
+            <div>
+              <span>04 / Artist ranking</span>
               <h2>Most played artists</h2>
             </div>
             <p>Primary artist</p>
           </div>
-          <ArtistChart data={current.topArtists} />
+          <RankingChart
+            data={current.topArtists}
+            ariaLabel="Most played artists"
+            emptyLabel="artists"
+          />
         </article>
 
-        <article className="chart-card hours-card">
+        <article className="chart-card">
           <div className="chart-heading">
             <div>
-              <span>03 / Rhythm</span>
+              <span>05 / Track ranking</span>
+              <h2>Songs on repeat</h2>
+            </div>
+            <p>Individual tracks</p>
+          </div>
+          <RankingChart
+            data={current.topTracks}
+            ariaLabel="Most played tracks"
+            emptyLabel="tracks"
+          />
+        </article>
+
+        <article className="chart-card">
+          <div className="chart-heading">
+            <div>
+              <span>06 / Daily rhythm</span>
               <h2>When you listen</h2>
             </div>
-            <p>Hour of day</p>
+            <p>Browser-local hour</p>
           </div>
-          <HourChart data={current.hours} />
+          <DistributionChart
+            data={current.hours}
+            indexKey="hour"
+            labelFor={(hour) => String(hour).padStart(2, "0")}
+            ariaLabel="Listening distribution by local hour of day"
+          />
+        </article>
+
+        <article className="chart-card">
+          <div className="chart-heading">
+            <div>
+              <span>07 / Weekly rhythm</span>
+              <h2>Your listening week</h2>
+            </div>
+            <p>Browser-local weekday</p>
+          </div>
+          <DistributionChart
+            data={current.weekdays}
+            indexKey="day"
+            labelFor={(day) =>
+              ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][day - 1]
+            }
+            ariaLabel="Listening distribution by local weekday"
+          />
         </article>
       </section>
     </main>

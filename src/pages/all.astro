@@ -1,24 +1,12 @@
 ---
 import PlayStatsDashboard from "../components/PlayStatsDashboard.jsx";
-import { getPlayStats, type PlayStats } from "../lib/stats";
 
 const token = Astro.url.searchParams.get("token");
 const homeHref = token ? `/?token=${encodeURIComponent(token)}` : "/";
 const statsHref = token ? `/all?token=${encodeURIComponent(token)}` : "/all";
-let stats: PlayStats | null = null;
-let error = "";
-
-try {
-  stats = await getPlayStats(token ?? undefined);
-  if (!stats) {
-    error = token
-      ? "No listening history was found for this token."
-      : "A public listening token is required for multi-user libraries.";
-  }
-} catch (cause) {
-  console.error("Failed to load listening statistics", cause);
-  error = "Listening statistics are temporarily unavailable.";
-}
+const dataEndpoint = token
+  ? `/data/stats?token=${encodeURIComponent(token)}`
+  : "/data/stats";
 ---
 
 <!doctype html>
@@ -39,8 +27,7 @@ try {
   <body>
     <PlayStatsDashboard
       client:load
-      stats={stats}
-      error={error}
+      dataEndpoint={dataEndpoint}
       homeHref={homeHref}
       statsHref={statsHref}
     />

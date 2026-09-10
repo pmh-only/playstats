@@ -12,34 +12,36 @@
   color: #f4f1e8;
 }
 
-.stats-header {
-  display: flex;
-  min-height: 5.5rem;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid #30342d;
-}
-
-.stats-header > div {
-  display: flex;
-  gap: 1.5rem;
-  color: #777b73;
-  font-family: "DM Mono", monospace;
-  font-size: 0.6rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.stats-header > div span:last-child {
-  color: #b8ff57;
-}
-
 .stats-intro {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 3rem;
   align-items: end;
   padding: clamp(3.5rem, 9vw, 8rem) 0 clamp(2.5rem, 6vw, 5rem);
+}
+
+.stats-loading {
+  display: grid;
+  min-height: 100vh;
+  min-height: 100dvh;
+  align-content: center;
+  gap: 1rem;
+  padding: 8vw;
+}
+
+.stats-loading span {
+  color: #b8ff57;
+  font-family: "DM Mono", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.stats-loading strong {
+  max-width: 15ch;
+  font-size: clamp(2.5rem, 7vw, 6rem);
+  letter-spacing: -0.06em;
+  line-height: 0.92;
 }
 
 .stats-intro p,
@@ -308,14 +310,10 @@
     padding-left: 1rem;
   }
 
-  .stats-header > div span:first-child {
-    display: none;
-  }
-
   .stats-intro {
     grid-template-columns: 1fr;
     gap: 2rem;
-    padding-top: 3.5rem;
+    padding-top: 7rem;
   }
 
   .stats-intro h1 {

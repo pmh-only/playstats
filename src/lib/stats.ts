@@ -15,12 +15,25 @@ export interface PeriodStats {
     date: string;
     plays: number;
     durationMs: number;
+    tracks: number;
+    artists: number;
   }>;
   hours: Array<{
     hour: number;
     plays: number;
   }>;
+  weekdays: Array<{
+    day: number;
+    plays: number;
+    durationMs: number;
+  }>;
   topArtists: Array<{
+    id: string;
+    name: string;
+    plays: number;
+    durationMs: number;
+  }>;
+  topTracks: Array<{
     id: string;
     name: string;
     plays: number;
@@ -44,9 +57,18 @@ interface RawPeriodStats {
     _id: Date;
     plays: number;
     durationMs: number;
+    tracks: number;
+    artists: number;
   }>;
   hours: Array<{ _id: number; plays: number }>;
+  weekdays: Array<{ _id: number; plays: number; durationMs: number }>;
   topArtists: Array<{
+    _id: string;
+    name: string;
+    plays: number;
+    durationMs: number;
+  }>;
+  topTracks: Array<{
     _id: string;
     name: string;
     plays: number;
@@ -130,6 +152,30 @@ function buildPeriodFacets(
             },
             plays: { $sum: 1 },
             durationMs: { $sum: { $ifNull: ["$durationMs", 0] } },
+            tracks: { $addToSet: "$id" },
+            artists: { $addToSet: "$primaryArtistId" },
+          },
+        },
+        {
+          $project: {
+            plays: 1,
+            durationMs: 1,
+            tracks: { $size: "$tracks" },
+            artists: { $size: { $setDifference: ["$artists", [null]] } },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ],
+    ],
+    [
+      `${period}Weekdays`,
+      [
+        ...rangePipeline,
+        {
+          $group: {
+            _id: { $isoDayOfWeek: { date: "$played_at", timezone } },
+            plays: { $sum: 1 },
+            durationMs: { $sum: { $ifNull: ["$durationMs", 0] } },
           },
         },
         { $sort: { _id: 1 } },
@@ -181,15 +227,60 @@ function buildPeriodFacets(
         },
       ],
     ],
+    [
+      `${period}TopTracks`,
+      [
+        ...rangePipeline,
+        {
+          $group: {
+            _id: "$id",
+            plays: { $sum: 1 },
+            durationMs: { $sum: { $ifNull: ["$durationMs", 0] } },
+          },
+        },
+        { $sort: { plays: -1, _id: 1 } },
+        { $limit: 8 },
+        {
+          $lookup: {
+            from: "tracks",
+            localField: "_id",
+            foreignField: "id",
+            as: "track",
+          },
+        },
+        {
+          $project: {
+            plays: 1,
+            durationMs: 1,
+            name: {
+              $ifNull: [{ $first: "$track.name" }, "Unknown track"],
+            },
+          },
+        },
+      ],
+    ],
   ];
 }
 
-export async function getPlayStats(publicToken?: string): Promise<PlayStats | null> {
+export async function getPlayStats(
+  publicToken?: string,
+  requestedTimezone?: string,
+): Promise<PlayStats | null> {
   const database = await getDatabase();
   const user = await findStatsUser(database, publicToken);
   if (!user) return null;
 
-  const timezone = user.settings?.timezone || "UTC";
+  let timezone = "UTC";
+  for (const candidate of [requestedTimezone, user.settings?.timezone]) {
+    if (!candidate) continue;
+    try {
+      new Intl.DateTimeFormat("en-US", { timeZone: candidate }).format();
+      timezone = candidate;
+      break;
+    } catch {
+      // Ignore invalid client or persisted timezone names.
+    }
+  }
   const facets = Object.fromEntries(
     statsPeriods.flatMap((period) => buildPeriodFacets(period, timezone)),
   );
@@ -214,11 +305,16 @@ export async function getPlayStats(publicToken?: string): Promise<PlayStats | nu
         summary: (result?.[`${period}Summary`] ?? []) as RawPeriodStats["summary"],
         timeline: (result?.[`${period}Timeline`] ?? []) as RawPeriodStats["timeline"],
         hours: (result?.[`${period}Hours`] ?? []) as RawPeriodStats["hours"],
+        weekdays: (result?.[`${period}Weekdays`] ?? []) as RawPeriodStats["weekdays"],
         topArtists: (result?.[`${period}TopArtists`] ?? []) as RawPeriodStats["topArtists"],
+        topTracks: (result?.[`${period}TopTracks`] ?? []) as RawPeriodStats["topTracks"],
       };
       const summary = data.summary[0];
       const playsByHour = new Map(
         data.hours.map((entry) => [entry._id, entry.plays]),
+      );
+      const playsByWeekday = new Map(
+        data.weekdays.map((entry) => [entry._id, entry]),
       );
 
       return [
@@ -234,12 +330,29 @@ export async function getPlayStats(publicToken?: string): Promise<PlayStats | nu
             date: entry._id.toISOString(),
             plays: entry.plays,
             durationMs: entry.durationMs,
+            tracks: entry.tracks,
+            artists: entry.artists,
           })),
           hours: Array.from({ length: 24 }, (_, hour) => ({
             hour,
             plays: playsByHour.get(hour) ?? 0,
           })),
+          weekdays: Array.from({ length: 7 }, (_, index) => {
+            const day = index + 1;
+            const entry = playsByWeekday.get(day);
+            return {
+              day,
+              plays: entry?.plays ?? 0,
+              durationMs: entry?.durationMs ?? 0,
+            };
+          }),
           topArtists: data.topArtists.map((entry) => ({
+            id: entry._id,
+            name: entry.name,
+            plays: entry.plays,
+            durationMs: entry.durationMs,
+          })),
+          topTracks: data.topTracks.map((entry) => ({
             id: entry._id,
             name: entry.name,
             plays: entry.plays,
