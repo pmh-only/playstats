@@ -1,3 +1,4 @@
 .astro/
+.env
 dist/
 node_modules/
