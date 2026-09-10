@@ -65,9 +65,12 @@ const periodConfig: Record<
   all: { bucketUnit: "year" },
 };
 
-function buildPeriodPipeline(period: StatsPeriod, timezone: string): Document[] {
+function buildPeriodFacets(
+  period: StatsPeriod,
+  timezone: string,
+): Array<[string, Document[]]> {
   const { rangeUnit, bucketUnit } = periodConfig[period];
-  const pipeline: Document[] = [];
+  const rangePipeline: Document[] = [];
 
   if (rangeUnit) {
     const dateTrunc: Document = {
@@ -77,7 +80,7 @@ function buildPeriodPipeline(period: StatsPeriod, timezone: string): Document[] 
     };
     if (rangeUnit === "week") dateTrunc.startOfWeek = "monday";
 
-    pipeline.push({
+    rangePipeline.push({
       $match: {
         $expr: {
           $gte: ["$played_at", { $dateTrunc: dateTrunc }],
@@ -86,9 +89,11 @@ function buildPeriodPipeline(period: StatsPeriod, timezone: string): Document[] 
     });
   }
 
-  pipeline.push({
-    $facet: {
-      summary: [
+  return [
+    [
+      `${period}Summary`,
+      [
+        ...rangePipeline,
         {
           $group: {
             _id: null,
@@ -108,7 +113,11 @@ function buildPeriodPipeline(period: StatsPeriod, timezone: string): Document[] 
           },
         },
       ],
-      timeline: [
+    ],
+    [
+      `${period}Timeline`,
+      [
+        ...rangePipeline,
         {
           $group: {
             _id: {
@@ -125,7 +134,11 @@ function buildPeriodPipeline(period: StatsPeriod, timezone: string): Document[] 
         },
         { $sort: { _id: 1 } },
       ],
-      hours: [
+    ],
+    [
+      `${period}Hours`,
+      [
+        ...rangePipeline,
         {
           $group: {
             _id: { $hour: { date: "$played_at", timezone } },
@@ -134,7 +147,11 @@ function buildPeriodPipeline(period: StatsPeriod, timezone: string): Document[] 
         },
         { $sort: { _id: 1 } },
       ],
-      topArtists: [
+    ],
+    [
+      `${period}TopArtists`,
+      [
+        ...rangePipeline,
         { $match: { primaryArtistId: { $type: "string" } } },
         {
           $group: {
@@ -163,10 +180,8 @@ function buildPeriodPipeline(period: StatsPeriod, timezone: string): Document[] 
           },
         },
       ],
-    },
-  });
-
-  return pipeline;
+    ],
+  ];
 }
 
 export async function getPlayStats(publicToken?: string): Promise<PlayStats | null> {
@@ -176,14 +191,11 @@ export async function getPlayStats(publicToken?: string): Promise<PlayStats | nu
 
   const timezone = user.settings?.timezone || "UTC";
   const facets = Object.fromEntries(
-    statsPeriods.map((period) => [
-      period,
-      buildPeriodPipeline(period, timezone),
-    ]),
+    statsPeriods.flatMap((period) => buildPeriodFacets(period, timezone)),
   );
   const result = await database
     .collection("infos")
-    .aggregate<Record<StatsPeriod, RawPeriodStats[]>>([
+    .aggregate<Record<string, Document[]>>([
       {
         $match: {
           owner: user._id,
@@ -198,10 +210,15 @@ export async function getPlayStats(publicToken?: string): Promise<PlayStats | nu
 
   const periods = Object.fromEntries(
     statsPeriods.map((period) => {
-      const data = result?.[period]?.[0];
-      const summary = data?.summary[0];
+      const data: RawPeriodStats = {
+        summary: (result?.[`${period}Summary`] ?? []) as RawPeriodStats["summary"],
+        timeline: (result?.[`${period}Timeline`] ?? []) as RawPeriodStats["timeline"],
+        hours: (result?.[`${period}Hours`] ?? []) as RawPeriodStats["hours"],
+        topArtists: (result?.[`${period}TopArtists`] ?? []) as RawPeriodStats["topArtists"],
+      };
+      const summary = data.summary[0];
       const playsByHour = new Map(
-        (data?.hours ?? []).map((entry) => [entry._id, entry.plays]),
+        data.hours.map((entry) => [entry._id, entry.plays]),
       );
 
       return [
@@ -213,7 +230,7 @@ export async function getPlayStats(publicToken?: string): Promise<PlayStats | nu
             tracks: summary?.tracks ?? 0,
             artists: summary?.artists ?? 0,
           },
-          timeline: (data?.timeline ?? []).map((entry) => ({
+          timeline: data.timeline.map((entry) => ({
             date: entry._id.toISOString(),
             plays: entry.plays,
             durationMs: entry.durationMs,
@@ -222,7 +239,7 @@ export async function getPlayStats(publicToken?: string): Promise<PlayStats | nu
             hour,
             plays: playsByHour.get(hour) ?? 0,
           })),
-          topArtists: (data?.topArtists ?? []).map((entry) => ({
+          topArtists: data.topArtists.map((entry) => ({
             id: entry._id,
             name: entry.name,
             plays: entry.plays,
