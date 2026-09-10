@@ -1,4 +1,4 @@
-.entity-page { min-height: 100vh; min-height: 100dvh; padding: 8rem clamp(1rem, 5vw, 5rem) 4rem; background: #080908; }
+.entity-page { width: 100%; max-width: 90rem; min-height: 100vh; min-height: 100dvh; margin: 0 auto; padding: 8rem clamp(1rem, 5vw, 5rem) 4rem; background: #080908; }
 .entity-loading { display: grid; min-height: 60vh; place-items: center; color: #858980; font-family: "DM Mono", monospace; }
 .entity-hero { display: flex; gap: clamp(1.5rem, 5vw, 5rem); align-items: end; padding-bottom: 3rem; }
 .entity-hero img { width: clamp(8rem, 20vw, 18rem); aspect-ratio: 1; border-radius: 50%; object-fit: cover; }

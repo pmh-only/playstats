@@ -1,6 +1,9 @@
 .archive-page {
+  width: 100%;
+  max-width: 90rem;
   min-height: 100vh;
   min-height: 100dvh;
+  margin: 0 auto;
   padding: 8rem clamp(1rem, 4vw, 4rem) 4rem;
   background:
     linear-gradient(rgba(184, 255, 87, 0.035) 1px, transparent 1px),
