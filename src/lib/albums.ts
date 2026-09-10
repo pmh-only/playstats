@@ -58,12 +58,19 @@ function getClient() {
   return clientPromise;
 }
 
-export async function getTopAlbums(publicToken: string): Promise<AlbumStats[]> {
+export async function getTopAlbums(
+  publicToken?: string,
+): Promise<AlbumStats[]> {
   const client = await getClient();
   const database = client.db();
-  const user = await database
-    .collection<{ _id: ObjectId }>("users")
-    .findOne({ publicToken }, { projection: { _id: 1 } });
+  const users = database.collection<{ _id: ObjectId }>("users");
+  const user = publicToken
+    ? await users.findOne({ publicToken }, { projection: { _id: 1 } })
+    : await users
+        .find({}, { projection: { _id: 1 } })
+        .limit(2)
+        .toArray()
+        .then((matches) => (matches.length === 1 ? matches[0] : null));
 
   if (!user) {
     return [];

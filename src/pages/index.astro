@@ -6,18 +6,16 @@ const token = Astro.url.searchParams.get("token");
 let albums: AlbumStats[] = [];
 let error = "";
 
-if (!token) {
-  error = "A public listening token is required.";
-} else {
-  try {
-    albums = await getTopAlbums(token);
-    if (albums.length === 0) {
-      error = "No listening history was found for this token.";
-    }
-  } catch (cause) {
-    console.error("Failed to load album statistics", cause);
-    error = "Listening history is temporarily unavailable.";
+try {
+  albums = await getTopAlbums(token ?? undefined);
+  if (albums.length === 0) {
+    error = token
+      ? "No listening history was found for this token."
+      : "A public listening token is required for multi-user libraries.";
   }
+} catch (cause) {
+  console.error("Failed to load album statistics", cause);
+  error = "Listening history is temporarily unavailable.";
 }
 ---
 
