@@ -113,7 +113,7 @@
   line-height: 1;
 }
 
-.play-count span {
+.play-count > span {
   margin-top: 0.5rem;
   color: #b8ff57;
   font-family: "DM Mono", monospace;
