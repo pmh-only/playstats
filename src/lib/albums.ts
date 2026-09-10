@@ -1,4 +1,4 @@
-import { MongoClient, ObjectId } from "mongodb";
+import { findStatsUser, getDatabase } from "./database";
 
 export interface TrackStats {
   id: string;
@@ -43,34 +43,11 @@ interface AlbumAggregate {
   artistDocuments: Array<{ id: string; name?: string }>;
 }
 
-let clientPromise: Promise<MongoClient> | undefined;
-
-function getClient() {
-  const endpoint = process.env.MONGO_ENDPOINT;
-  if (!endpoint) {
-    throw new Error("MONGO_ENDPOINT is not configured");
-  }
-
-  clientPromise ??= new MongoClient(endpoint).connect().catch((error) => {
-    clientPromise = undefined;
-    throw error;
-  });
-  return clientPromise;
-}
-
 export async function getTopAlbums(
   publicToken?: string,
 ): Promise<AlbumStats[]> {
-  const client = await getClient();
-  const database = client.db();
-  const users = database.collection<{ _id: ObjectId }>("users");
-  const user = publicToken
-    ? await users.findOne({ publicToken }, { projection: { _id: 1 } })
-    : await users
-        .find({}, { projection: { _id: 1 } })
-        .limit(2)
-        .toArray()
-        .then((matches) => (matches.length === 1 ? matches[0] : null));
+  const database = await getDatabase();
+  const user = await findStatsUser(database, publicToken);
 
   if (!user) {
     return [];

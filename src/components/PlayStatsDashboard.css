@@ -1,0 +1,379 @@
+.stats-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 0 clamp(1rem, 3vw, 3rem) 4rem;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 78% 8%, rgba(184, 255, 87, 0.1), transparent 24rem),
+    linear-gradient(rgba(184, 255, 87, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(184, 255, 87, 0.035) 1px, transparent 1px),
+    #080908;
+  background-size: auto, 4rem 4rem, 4rem 4rem;
+  color: #f4f1e8;
+}
+
+.stats-header {
+  display: flex;
+  min-height: 5.5rem;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #30342d;
+}
+
+.stats-wordmark,
+.stats-error a {
+  color: #f4f1e8;
+  font-family: "DM Mono", monospace;
+  font-size: 0.76rem;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-decoration: none;
+}
+
+.stats-header > div {
+  display: flex;
+  gap: 1.5rem;
+  color: #777b73;
+  font-family: "DM Mono", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.stats-header > div span:last-child {
+  color: #b8ff57;
+}
+
+.stats-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3rem;
+  align-items: end;
+  padding: clamp(3.5rem, 9vw, 8rem) 0 clamp(2.5rem, 6vw, 5rem);
+}
+
+.stats-intro p,
+.chart-heading span,
+.chart-heading p,
+.metric-grid article > span,
+.metric-grid small {
+  font-family: "DM Mono", monospace;
+  text-transform: uppercase;
+}
+
+.stats-intro p {
+  margin: 0 0 1.1rem;
+  color: #b8ff57;
+  font-size: 0.64rem;
+  letter-spacing: 0.16em;
+}
+
+.stats-intro h1 {
+  margin: 0;
+  font-size: clamp(3rem, 7.5vw, 7.8rem);
+  letter-spacing: -0.075em;
+  line-height: 0.86;
+}
+
+.period-picker {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.period-picker button {
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #30342d;
+  border-radius: 999px;
+  background: rgba(8, 9, 8, 0.72);
+  color: #858980;
+  font-family: "DM Mono", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.period-picker button:hover,
+.period-picker button:focus-visible,
+.period-picker button.active {
+  border-color: #b8ff57;
+  background: #b8ff57;
+  color: #080908;
+  outline: none;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid #30342d;
+  border-bottom: 1px solid #30342d;
+}
+
+.metric-grid article {
+  display: grid;
+  min-width: 0;
+  min-height: 11.5rem;
+  align-content: space-between;
+  padding: 1.3rem clamp(1rem, 2.5vw, 2rem);
+  border-right: 1px solid #30342d;
+}
+
+.metric-grid article:first-child {
+  padding-left: 0;
+}
+
+.metric-grid article:last-child {
+  border-right: 0;
+}
+
+.metric-grid article > span {
+  color: #777b73;
+  font-size: 0.6rem;
+  letter-spacing: 0.13em;
+}
+
+.metric-grid strong {
+  overflow: hidden;
+  font-family: "DM Mono", monospace;
+  font-size: clamp(2rem, 4vw, 4.8rem);
+  font-weight: 300;
+  letter-spacing: -0.07em;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metric-grid small {
+  color: #5e625b;
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+}
+
+.chart-grid-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 1px;
+  background: #30342d;
+  border: 1px solid #30342d;
+}
+
+.chart-card {
+  min-width: 0;
+  padding: clamp(1.25rem, 2.5vw, 2rem);
+  background: rgba(11, 13, 10, 0.96);
+}
+
+.activity-card {
+  grid-column: 1 / -1;
+}
+
+.chart-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.chart-heading span,
+.chart-heading p {
+  color: #666b63;
+  font-size: 0.56rem;
+  letter-spacing: 0.12em;
+}
+
+.chart-heading h2 {
+  margin: 0.45rem 0 0;
+  font-size: clamp(1.2rem, 2vw, 1.8rem);
+  letter-spacing: -0.04em;
+}
+
+.chart-heading p {
+  margin: 0;
+  color: #b8ff57;
+}
+
+.chart-frame {
+  width: 100%;
+  min-height: 13rem;
+}
+
+.stats-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chart-grid {
+  stroke: #242821;
+  stroke-width: 1;
+}
+
+.chart-axis,
+.artist-rank,
+.artist-value {
+  fill: #6f746a;
+  font-family: "DM Mono", monospace;
+  font-size: 10px;
+}
+
+.chart-axis {
+  text-anchor: end;
+}
+
+.chart-axis.x-axis {
+  text-anchor: middle;
+}
+
+.activity-line {
+  fill: none;
+  stroke: #b8ff57;
+  stroke-width: 2;
+}
+
+.activity-point {
+  fill: #080908;
+  stroke: #b8ff57;
+  stroke-width: 2;
+}
+
+.hour-bar {
+  fill: #b8ff57;
+  opacity: 0.78;
+}
+
+.hour-bar:hover {
+  opacity: 1;
+}
+
+.artist-name {
+  fill: #d8d7d0;
+  font-size: 12px;
+}
+
+.artist-rank {
+  fill: #b8ff57;
+}
+
+.artist-value {
+  text-anchor: end;
+}
+
+.artist-bar-track {
+  fill: #20231e;
+}
+
+.artist-bar {
+  fill: #b8ff57;
+}
+
+.chart-empty {
+  display: grid;
+  min-height: 16rem;
+  place-items: center;
+  color: #666b63;
+  font-family: "DM Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stats-error {
+  display: grid;
+  min-height: 100vh;
+  min-height: 100dvh;
+  align-content: center;
+  gap: 1rem;
+  padding: 8vw;
+  background: #080908;
+}
+
+.stats-error p {
+  margin: 2rem 0 0;
+  color: #b8ff57;
+  font-family: "DM Mono", monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.stats-error h1 {
+  max-width: 18ch;
+  margin: 0;
+  font-size: clamp(2.5rem, 7vw, 6rem);
+  letter-spacing: -0.06em;
+  line-height: 0.92;
+}
+
+@media (max-width: 760px) {
+  .stats-page {
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+
+  .stats-header > div span:first-child {
+    display: none;
+  }
+
+  .stats-intro {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding-top: 3.5rem;
+  }
+
+  .stats-intro h1 {
+    font-size: clamp(3rem, 15vw, 5rem);
+  }
+
+  .period-picker {
+    justify-content: flex-start;
+  }
+
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metric-grid article,
+  .metric-grid article:first-child {
+    min-height: 9rem;
+    padding: 1rem;
+    border-bottom: 1px solid #30342d;
+  }
+
+  .metric-grid article:nth-child(even) {
+    border-right: 0;
+  }
+
+  .metric-grid article:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+
+  .metric-grid strong {
+    font-size: clamp(1.8rem, 9vw, 3rem);
+  }
+
+  .chart-grid-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .activity-card {
+    grid-column: auto;
+  }
+
+  .chart-card {
+    padding: 1rem 0.75rem;
+  }
+
+  .chart-heading p {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .period-picker button {
+    transition: none;
+  }
+}

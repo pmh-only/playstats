@@ -7,7 +7,7 @@ function formatDuration(durationMs) {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
-export default function AlbumExplorer({ albums, error }) {
+export default function AlbumExplorer({ albums, error, statsHref = "/all" }) {
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const menuItems = useMemo(
     () =>
@@ -55,9 +55,14 @@ export default function AlbumExplorer({ albums, error }) {
   return (
     <main className="album-explorer" onClickCapture={closeDetailsOutside}>
       <header className="site-header">
-        <a href="/" className="wordmark" aria-label="Playstats home">
-          PLAY/STATS
-        </a>
+        <nav className="site-navigation" aria-label="Primary navigation">
+          <a href="/" className="wordmark" aria-label="Playstats home">
+            PLAY/STATS
+          </a>
+          <a href={statsHref} className="stats-link">
+            All stats
+          </a>
+        </nav>
         <div className="collection-label">
           <span>Collection 01</span>
           <span>Top {albums.length} albums</span>

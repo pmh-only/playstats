@@ -1,22 +1,22 @@
 ---
-import AlbumExplorer from "../components/AlbumExplorer.jsx";
-import { getTopAlbums, type AlbumStats } from "../lib/albums";
+import PlayStatsDashboard from "../components/PlayStatsDashboard.jsx";
+import { getPlayStats, type PlayStats } from "../lib/stats";
 
 const token = Astro.url.searchParams.get("token");
-const statsHref = token ? `/all?token=${encodeURIComponent(token)}` : "/all";
-let albums: AlbumStats[] = [];
+const homeHref = token ? `/?token=${encodeURIComponent(token)}` : "/";
+let stats: PlayStats | null = null;
 let error = "";
 
 try {
-  albums = await getTopAlbums(token ?? undefined);
-  if (albums.length === 0) {
+  stats = await getPlayStats(token ?? undefined);
+  if (!stats) {
     error = token
       ? "No listening history was found for this token."
       : "A public listening token is required for multi-user libraries.";
   }
 } catch (cause) {
-  console.error("Failed to load album statistics", cause);
-  error = "Listening history is temporarily unavailable.";
+  console.error("Failed to load listening statistics", cause);
+  error = "Listening statistics are temporarily unavailable.";
 }
 ---
 
@@ -27,21 +27,16 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Explore the one hundred most-played albums in your Spotify history."
+      content="Explore your Spotify listening activity across today, this week, month, year, and all time."
     />
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23b8ff57'/%3E%3C/svg%3E"
     />
-    <title>Playstats | Top 100 albums</title>
+    <title>Playstats | Listening statistics</title>
   </head>
   <body>
-    <AlbumExplorer
-      client:load
-      albums={albums}
-      error={error}
-      statsHref={statsHref}
-    />
+    <PlayStatsDashboard client:load stats={stats} error={error} homeHref={homeHref} />
   </body>
 </html>
 
@@ -65,12 +60,6 @@ try {
     min-height: 100%;
     margin: 0;
     background: #080908;
-  }
-
-  body {
-    min-height: 100vh;
-    min-height: 100dvh;
-    overflow: hidden;
   }
 
   button,
