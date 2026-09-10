@@ -28,7 +28,11 @@ void main() {
   if (gl_VertexID > 0) {
     vec3 rotationAxis = uRotationAxisVelocity.xyz;
     float rotationVelocity = min(0.15, uRotationAxisVelocity.w * 15.0);
-    vec3 stretchDir = normalize(cross(centerPos, rotationAxis));
+    vec3 tangent = cross(centerPos, rotationAxis);
+    float tangentLength = length(tangent);
+    vec3 stretchDir = tangentLength > 0.0001
+      ? tangent / tangentLength
+      : vec3(0.0);
     vec3 relativeVertexPos = normalize(worldPosition.xyz - centerPos);
     float strength = dot(stretchDir, relativeVertexPos);
     float invAbsStrength = min(0.0, abs(strength) - 1.0);
@@ -287,12 +291,18 @@ class ArcballControl {
     let velocity = 0;
     if (sine > 0.000001) {
       velocity = radians / (2 * Math.PI);
+      const direction = this.smoothedRotation[3] < 0 ? -1 : 1;
       vec3.set(
         this.rotationAxis,
-        this.smoothedRotation[0] / sine,
-        this.smoothedRotation[1] / sine,
-        this.smoothedRotation[2] / sine,
+        this.smoothedRotation[0] * direction,
+        this.smoothedRotation[1] * direction,
+        this.smoothedRotation[2] * direction,
       );
+      if (vec3.squaredLength(this.rotationAxis) > 0.000001) {
+        vec3.normalize(this.rotationAxis, this.rotationAxis);
+      } else {
+        vec3.set(this.rotationAxis, 1, 0, 0);
+      }
     }
     this.rotationVelocity +=
       (velocity - this.rotationVelocity) * 0.5 * timeScale;
