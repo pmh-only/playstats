@@ -1,0 +1,247 @@
+.infinite-menu {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.infinite-menu::after {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      transparent 35%,
+      rgba(8, 9, 8, 0.36) 70%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(8, 9, 8, 0.64),
+      transparent 25%,
+      transparent 75%,
+      rgba(8, 9, 8, 0.58)
+    );
+  content: "";
+  pointer-events: none;
+}
+
+.infinite-menu canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  outline: none;
+  touch-action: none;
+}
+
+.infinite-menu canvas:active {
+  cursor: grabbing;
+}
+
+.album-caption,
+.play-count,
+.view-album {
+  position: absolute;
+  z-index: 3;
+  transition:
+    opacity 300ms ease,
+    transform 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.album-caption.inactive,
+.play-count.inactive,
+.view-album.inactive {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.album-caption {
+  top: 50%;
+  left: clamp(1.25rem, 5vw, 5.5rem);
+  width: min(28rem, 34vw);
+  transform: translateY(-40%);
+  pointer-events: none;
+}
+
+.album-caption.active {
+  transform: translateY(-50%);
+}
+
+.album-rank {
+  display: block;
+  margin-bottom: 0.8rem;
+  color: #b8ff57;
+  font-family: "DM Mono", monospace;
+  font-size: 0.76rem;
+  letter-spacing: 0.16em;
+}
+
+.album-caption h2 {
+  max-width: 12ch;
+  margin: 0;
+  font-size: clamp(2.25rem, 5vw, 5.6rem);
+  font-weight: 700;
+  letter-spacing: -0.065em;
+  line-height: 0.9;
+  text-wrap: balance;
+}
+
+.album-caption p {
+  margin: 1.1rem 0 0;
+  color: #a6a89f;
+  font-size: clamp(0.9rem, 1.2vw, 1.1rem);
+}
+
+.play-count {
+  top: 50%;
+  right: clamp(1.25rem, 5vw, 5.5rem);
+  display: grid;
+  justify-items: end;
+  margin: 0;
+  transform: translateY(-40%);
+  pointer-events: none;
+}
+
+.play-count.active {
+  transform: translateY(-50%);
+}
+
+.play-count strong {
+  font-family: "DM Mono", monospace;
+  font-size: clamp(2.3rem, 4vw, 4.6rem);
+  font-weight: 300;
+  letter-spacing: -0.08em;
+  line-height: 1;
+}
+
+.play-count span {
+  margin-top: 0.5rem;
+  color: #b8ff57;
+  font-family: "DM Mono", monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.view-album {
+  bottom: clamp(1.5rem, 5vh, 3.8rem);
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 0.95rem 0.85rem 1.2rem;
+  border: 1px solid #b8ff57;
+  border-radius: 999px;
+  background: rgba(8, 9, 8, 0.78);
+  color: #f4f1e8;
+  cursor: pointer;
+  transform: translateX(-50%);
+  backdrop-filter: blur(12px);
+}
+
+.view-album:hover,
+.view-album:focus-visible {
+  background: #b8ff57;
+  color: #080908;
+  outline: none;
+}
+
+.view-album span:first-child {
+  font-family: "DM Mono", monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.view-album span:last-child {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #b8ff57;
+  color: #080908;
+}
+
+.menu-fallback {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: 1rem;
+  height: 100%;
+  padding: 8rem 1.25rem 2rem;
+  overflow: auto;
+  background: #080908;
+}
+
+.menu-fallback button {
+  border: 0;
+  background: transparent;
+  color: #f4f1e8;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu-fallback img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.menu-fallback span {
+  display: block;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 760px) {
+  .infinite-menu::after {
+    background: linear-gradient(0deg, rgba(8, 9, 8, 0.9), transparent 48%);
+  }
+
+  .album-caption {
+    top: auto;
+    right: 1.25rem;
+    bottom: 7.2rem;
+    left: 1.25rem;
+    width: auto;
+    transform: translateY(0.75rem);
+  }
+
+  .album-caption.active {
+    transform: none;
+  }
+
+  .album-caption h2 {
+    max-width: 15ch;
+    font-size: clamp(2rem, 10vw, 3.4rem);
+  }
+
+  .play-count {
+    top: auto;
+    right: 1.25rem;
+    bottom: 2rem;
+    transform: translateY(0.75rem);
+  }
+
+  .play-count.active {
+    transform: none;
+  }
+
+  .play-count strong {
+    font-size: 1.8rem;
+  }
+
+  .view-album {
+    right: auto;
+    bottom: 1.7rem;
+    left: 1.25rem;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .album-caption,
+  .play-count,
+  .view-album {
+    transition: opacity 100ms linear;
+  }
+}

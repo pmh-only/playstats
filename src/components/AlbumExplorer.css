@@ -1,0 +1,339 @@
+.album-explorer {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 40rem;
+  overflow: hidden;
+  background: #080908;
+}
+
+.site-header {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  padding: clamp(1.25rem, 3vw, 2.5rem) clamp(1.25rem, 4vw, 4rem);
+  pointer-events: none;
+}
+
+.wordmark {
+  width: max-content;
+  color: #f4f1e8;
+  font-family: "DM Mono", monospace;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  pointer-events: auto;
+}
+
+.collection-label {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  font-family: "DM Mono", monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.collection-label span:first-child {
+  color: #6f746a;
+}
+
+.instructions {
+  justify-self: end;
+  margin: 0;
+  color: #858980;
+  font-family: "DM Mono", monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.axis {
+  position: absolute;
+  z-index: 2;
+  background: rgba(184, 255, 87, 0.2);
+  pointer-events: none;
+}
+
+.axis-horizontal {
+  top: 50%;
+  right: 1.25rem;
+  left: 1.25rem;
+  height: 1px;
+}
+
+.axis-vertical {
+  top: 1.25rem;
+  bottom: 1.25rem;
+  left: 50%;
+  width: 1px;
+}
+
+.album-details {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  width: min(46rem, 52vw);
+  height: 100%;
+  flex-direction: column;
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+  overflow: hidden;
+  border-left: 1px solid #30342d;
+  background: rgba(14, 16, 13, 0.96);
+  box-shadow: -2rem 0 6rem rgba(0, 0, 0, 0.45);
+  animation: details-enter 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  backdrop-filter: blur(24px);
+}
+
+@keyframes details-enter {
+  from {
+    opacity: 0;
+    transform: translateX(3rem);
+  }
+}
+
+.details-heading,
+.track-heading {
+  display: grid;
+  align-items: center;
+  color: #8d9188;
+  font-family: "DM Mono", monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.details-heading {
+  grid-template-columns: 1fr auto;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #30342d;
+}
+
+.details-rank {
+  color: #b8ff57;
+}
+
+.close-details {
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  background: transparent;
+  color: #f4f1e8;
+  font-family: "DM Mono", monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.close-details:hover,
+.close-details:focus-visible {
+  color: #b8ff57;
+  outline: none;
+}
+
+.album-summary {
+  display: grid;
+  grid-template-columns: 8rem 1fr;
+  gap: 1.5rem;
+  align-items: end;
+  padding: clamp(1.5rem, 4vh, 3rem) 0;
+}
+
+.album-summary img {
+  width: 8rem;
+  height: 8rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.album-summary h2 {
+  max-width: 16ch;
+  margin: 0;
+  font-size: clamp(1.8rem, 3vw, 3.6rem);
+  letter-spacing: -0.055em;
+  line-height: 0.95;
+}
+
+.album-summary p {
+  margin: 0.75rem 0 1.25rem;
+  color: #9b9e96;
+  font-size: 0.85rem;
+}
+
+.album-summary dl {
+  display: flex;
+  gap: 2rem;
+  margin: 0;
+}
+
+.album-summary dl div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.album-summary dt {
+  color: #6f746a;
+  font-family: "DM Mono", monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.album-summary dd {
+  margin: 0;
+  font-family: "DM Mono", monospace;
+  font-size: 0.78rem;
+}
+
+.track-heading {
+  grid-template-columns: 1fr 4rem 3rem;
+  padding: 0.8rem 0 0.8rem 2.8rem;
+  border-top: 1px solid #30342d;
+  border-bottom: 1px solid #30342d;
+}
+
+.track-heading span:nth-child(n + 2) {
+  text-align: right;
+}
+
+.track-list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+  scrollbar-color: #4c5148 transparent;
+  scrollbar-width: thin;
+}
+
+.track-list li {
+  display: grid;
+  grid-template-columns: 2.8rem minmax(0, 1fr) 4rem 3rem;
+  align-items: center;
+  min-height: 4.4rem;
+  border-bottom: 1px solid #252822;
+}
+
+.track-position,
+.track-plays,
+.track-duration {
+  color: #858980;
+  font-family: "DM Mono", monospace;
+  font-size: 0.7rem;
+}
+
+.track-plays,
+.track-duration {
+  text-align: right;
+}
+
+.track-name {
+  display: grid;
+  min-width: 0;
+  gap: 0.28rem;
+  padding-right: 1rem;
+}
+
+.track-name strong,
+.track-name small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.track-name strong {
+  font-size: 0.83rem;
+  font-weight: 600;
+}
+
+.track-name small {
+  color: #777b73;
+  font-size: 0.68rem;
+}
+
+.error-state {
+  display: grid;
+  min-height: 100vh;
+  align-content: center;
+  padding: 8vw;
+  background:
+    linear-gradient(rgba(184, 255, 87, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(184, 255, 87, 0.08) 1px, transparent 1px),
+    #080908;
+  background-size: 4rem 4rem;
+}
+
+.error-state p {
+  color: #b8ff57;
+  font-family: "DM Mono", monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.error-state h1 {
+  max-width: 16ch;
+  margin: 0;
+  font-size: clamp(2.8rem, 8vw, 7rem);
+  letter-spacing: -0.07em;
+  line-height: 0.9;
+}
+
+@media (max-width: 760px) {
+  .album-explorer {
+    min-height: 36rem;
+  }
+
+  .site-header {
+    grid-template-columns: 1fr auto;
+  }
+
+  .collection-label {
+    align-items: end;
+    justify-items: end;
+  }
+
+  .instructions {
+    display: none;
+  }
+
+  .axis {
+    display: none;
+  }
+
+  .album-details {
+    width: 100%;
+    border-left: 0;
+  }
+
+  .album-summary {
+    grid-template-columns: 5.5rem 1fr;
+    gap: 1rem;
+  }
+
+  .album-summary img {
+    width: 5.5rem;
+    height: 5.5rem;
+  }
+
+  .album-summary h2 {
+    font-size: clamp(1.55rem, 7vw, 2.4rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .album-details {
+    animation: none;
+  }
+}

@@ -1,12 +1,71 @@
 ---
+import AlbumExplorer from "../components/AlbumExplorer.jsx";
+import { getTopAlbums, type AlbumStats } from "../lib/albums";
+
+const token = Astro.url.searchParams.get("token");
+let albums: AlbumStats[] = [];
+let error = "";
+
+if (!token) {
+  error = "A public listening token is required.";
+} else {
+  try {
+    albums = await getTopAlbums(token);
+    if (albums.length === 0) {
+      error = "No listening history was found for this token.";
+    }
+  } catch (cause) {
+    console.error("Failed to load album statistics", cause);
+    error = "Listening history is temporarily unavailable.";
+  }
+}
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>Playstats</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Explore the one hundred most-played albums in your Spotify history."
+    />
+    <title>Playstats | Top 100 albums</title>
   </head>
-  <body></body>
+  <body>
+    <AlbumExplorer client:load albums={albums} error={error} />
+  </body>
 </html>
+
+<style is:global>
+  @import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Manrope:wght@400;500;600;700;800&display=swap");
+
+  :root {
+    color-scheme: dark;
+    font-family: "Manrope", sans-serif;
+    background: #080908;
+    color: #f4f1e8;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    min-width: 320px;
+    min-height: 100%;
+    margin: 0;
+    background: #080908;
+  }
+
+  body {
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
+</style>
