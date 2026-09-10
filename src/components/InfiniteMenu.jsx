@@ -45,7 +45,6 @@ const discFragShaderSource = `#version 300 es
 precision highp float;
 
 uniform sampler2D uTex;
-uniform int uItemCount;
 uniform int uAtlasSize;
 
 out vec4 outColor;
@@ -54,9 +53,8 @@ in float vAlpha;
 flat in int vInstanceId;
 
 void main() {
-  int itemIndex = vInstanceId % uItemCount;
-  int cellX = itemIndex % uAtlasSize;
-  int cellY = itemIndex / uAtlasSize;
+  int cellX = vInstanceId % uAtlasSize;
+  int cellY = vInstanceId / uAtlasSize;
   vec2 cellSize = vec2(1.0) / vec2(float(uAtlasSize));
   vec2 cellOffset = vec2(float(cellX), float(cellY)) * cellSize;
   vec2 st = vec2(vUvs.x, 1.0 - vUvs.y) * cellSize + cellOffset;
@@ -103,159 +101,6 @@ class Geometry {
 
   get lastVertex() {
     return this.vertices[this.vertices.length - 1];
-  }
-
-  subdivide(divisions = 1) {
-    const midpointCache = {};
-    let faces = this.faces;
-
-    for (let division = 0; division < divisions; division += 1) {
-      const newFaces = new Array(faces.length * 4);
-      faces.forEach((face, index) => {
-        const midpointAB = this.getMidpoint(face.a, face.b, midpointCache);
-        const midpointBC = this.getMidpoint(face.b, face.c, midpointCache);
-        const midpointCA = this.getMidpoint(face.c, face.a, midpointCache);
-        const offset = index * 4;
-        newFaces[offset] = new Face(face.a, midpointAB, midpointCA);
-        newFaces[offset + 1] = new Face(face.b, midpointBC, midpointAB);
-        newFaces[offset + 2] = new Face(face.c, midpointCA, midpointBC);
-        newFaces[offset + 3] = new Face(midpointAB, midpointBC, midpointCA);
-      });
-      faces = newFaces;
-    }
-
-    this.faces = faces;
-    return this;
-  }
-
-  spherize(radius = 1) {
-    this.vertices.forEach((vertex) => {
-      vec3.normalize(vertex.position, vertex.position);
-      vec3.scale(vertex.position, vertex.position, radius);
-    });
-    return this;
-  }
-
-  getMidpoint(indexA, indexB, cache) {
-    const key = indexA < indexB ? `${indexA}_${indexB}` : `${indexB}_${indexA}`;
-    if (Object.hasOwn(cache, key)) return cache[key];
-
-    const a = this.vertices[indexA].position;
-    const b = this.vertices[indexB].position;
-    const index = this.vertices.length;
-    cache[key] = index;
-    this.addVertex(
-      (a[0] + b[0]) * 0.5,
-      (a[1] + b[1]) * 0.5,
-      (a[2] + b[2]) * 0.5,
-    );
-    return index;
-  }
-}
-
-class IcosahedronGeometry extends Geometry {
-  constructor() {
-    super();
-    const t = Math.sqrt(5) * 0.5 + 0.5;
-    this.addVertex(
-      -1,
-      t,
-      0,
-      1,
-      t,
-      0,
-      -1,
-      -t,
-      0,
-      1,
-      -t,
-      0,
-      0,
-      -1,
-      t,
-      0,
-      1,
-      t,
-      0,
-      -1,
-      -t,
-      0,
-      1,
-      -t,
-      t,
-      0,
-      -1,
-      t,
-      0,
-      1,
-      -t,
-      0,
-      -1,
-      -t,
-      0,
-      1,
-    ).addFace(
-      0,
-      11,
-      5,
-      0,
-      5,
-      1,
-      0,
-      1,
-      7,
-      0,
-      7,
-      10,
-      0,
-      10,
-      11,
-      1,
-      5,
-      9,
-      5,
-      11,
-      4,
-      11,
-      10,
-      2,
-      10,
-      7,
-      6,
-      7,
-      1,
-      8,
-      3,
-      9,
-      4,
-      3,
-      4,
-      2,
-      3,
-      2,
-      6,
-      3,
-      6,
-      8,
-      3,
-      8,
-      9,
-      4,
-      9,
-      5,
-      2,
-      4,
-      11,
-      6,
-      2,
-      10,
-      8,
-      6,
-      7,
-      9,
-      8,
-      1,
-    );
   }
 }
 
@@ -504,7 +349,6 @@ class InfiniteGridMenu {
       projection: gl.getUniformLocation(this.program, "uProjectionMatrix"),
       rotation: gl.getUniformLocation(this.program, "uRotationAxisVelocity"),
       texture: gl.getUniformLocation(this.program, "uTex"),
-      itemCount: gl.getUniformLocation(this.program, "uItemCount"),
       atlasSize: gl.getUniformLocation(this.program, "uAtlasSize"),
     };
 
@@ -548,10 +392,17 @@ class InfiniteGridMenu {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
 
-    const sphere = new IcosahedronGeometry()
-      .subdivide(2)
-      .spherize(this.sphereRadius);
-    this.instancePositions = sphere.vertices.map((vertex) => vertex.position);
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+    this.instancePositions = this.items.map((_, index) => {
+      const y = 1 - ((index + 0.5) / this.items.length) * 2;
+      const radius = Math.sqrt(1 - y * y);
+      const angle = index * goldenAngle;
+      return vec3.fromValues(
+        Math.cos(angle) * radius * this.sphereRadius,
+        y * this.sphereRadius,
+        Math.sin(angle) * radius * this.sphereRadius,
+      );
+    });
     const initialIndex = this.instancePositions.reduce(
       (nearest, position, index, positions) =>
         position[2] < positions[nearest][2] ? index : nearest,
@@ -734,7 +585,6 @@ class InfiniteGridMenu {
       this.control.rotationAxis[2],
       this.smoothedRotationVelocity * 1.1,
     );
-    gl.uniform1i(this.locations.itemCount, this.items.length);
     gl.uniform1i(this.locations.atlasSize, this.atlasSize);
     gl.uniform1i(this.locations.texture, 0);
     gl.activeTexture(gl.TEXTURE0);
