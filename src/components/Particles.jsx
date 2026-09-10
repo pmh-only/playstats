@@ -214,8 +214,11 @@ export default function Particles({
       program.uniforms.uTime.value = elapsed * 0.001;
 
       if (moveParticlesOnHover) {
-        particles.position.x = -mouseRef.current.x * particleHoverFactor;
-        particles.position.y = -mouseRef.current.y * particleHoverFactor;
+        const follow = 1 - Math.exp(-delta * 0.003);
+        const targetX = -mouseRef.current.x * particleHoverFactor;
+        const targetY = -mouseRef.current.y * particleHoverFactor;
+        particles.position.x += (targetX - particles.position.x) * follow;
+        particles.position.y += (targetY - particles.position.y) * follow;
       } else {
         particles.position.x = 0;
         particles.position.y = 0;

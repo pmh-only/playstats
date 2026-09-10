@@ -262,16 +262,27 @@ class ArcballControl {
       snapRotation,
       this.pointerRotation,
     );
+    if (!combined.every(Number.isFinite)) {
+      quat.identity(combined);
+      quat.identity(this.pointerRotation);
+    }
     quat.multiply(this.orientation, combined, this.orientation);
     quat.normalize(this.orientation, this.orientation);
+    if (!this.orientation.every(Number.isFinite)) {
+      quat.identity(this.orientation);
+    }
     quat.slerp(
       this.smoothedRotation,
       this.smoothedRotation,
       combined,
       0.8 * timeScale,
     );
+    if (!this.smoothedRotation.every(Number.isFinite)) {
+      quat.identity(this.smoothedRotation);
+    }
 
-    const radians = Math.acos(this.smoothedRotation[3]) * 2;
+    const rotationW = Math.max(-1, Math.min(1, this.smoothedRotation[3]));
+    const radians = Math.acos(rotationW) * 2;
     const sine = Math.sin(radians / 2);
     let velocity = 0;
     if (sine > 0.000001) {
@@ -289,8 +300,21 @@ class ArcballControl {
   }
 
   quatFromVectors(a, b, output, angleFactor) {
-    const axis = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), a, b));
-    const angle = Math.acos(Math.max(-1, Math.min(1, vec3.dot(a, b))));
+    const dot = Math.max(-1, Math.min(1, vec3.dot(a, b)));
+    if (dot > 0.999999) {
+      quat.identity(output);
+      return;
+    }
+
+    const axis = vec3.cross(vec3.create(), a, b);
+    if (vec3.squaredLength(axis) < 0.000001) {
+      vec3.cross(axis, a, [1, 0, 0]);
+      if (vec3.squaredLength(axis) < 0.000001) {
+        vec3.cross(axis, a, [0, 1, 0]);
+      }
+    }
+    vec3.normalize(axis, axis);
+    const angle = Math.acos(dot);
     quat.setAxisAngle(output, axis, angle * angleFactor);
   }
 
@@ -653,10 +677,16 @@ class InfiniteGridMenu {
       }
     } else {
       this.targetIndex = null;
-      targetZ += this.control.rotationVelocity * 80 + 2.5;
+      const zoomVelocity = Number.isFinite(this.control.rotationVelocity)
+        ? Math.min(Math.abs(this.control.rotationVelocity), 0.08)
+        : 0;
+      targetZ += zoomVelocity * 80 + 2.5;
       damping = 7 / timeScale;
     }
     this.camera.position[2] += (targetZ - this.camera.position[2]) / damping;
+    if (!Number.isFinite(this.camera.position[2])) {
+      this.camera.position[2] = 3 * this.scaleFactor;
+    }
     mat4.targetTo(
       this.camera.matrix,
       this.camera.position,
@@ -767,7 +797,7 @@ export default function InfiniteMenu({
         speed={0.1}
         particleBaseSize={120}
         moveParticlesOnHover
-        particleHoverFactor={1.5}
+        particleHoverFactor={0.8}
       />
       <canvas
         ref={canvasRef}

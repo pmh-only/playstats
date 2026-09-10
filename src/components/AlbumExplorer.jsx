@@ -66,13 +66,6 @@ export default function AlbumExplorer({
   return (
     <main className="album-explorer" onClickCapture={closeDetailsOutside}>
       <SiteMenu homeHref={homeHref} statsHref={statsHref} />
-      <header className="site-header">
-        <div className="collection-label">
-          <span>Collection 01</span>
-          <span>Top {albums.length} albums</span>
-        </div>
-        <p className="instructions">Drag to explore · click to inspect</p>
-      </header>
 
       <InfiniteMenu
         items={menuItems}

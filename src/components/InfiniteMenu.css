@@ -65,7 +65,7 @@
 
 .album-caption {
   top: 50%;
-  left: clamp(1.25rem, 5vw, 5.5rem);
+  left: clamp(6rem, 8vw, 9rem);
   width: min(28rem, 34vw);
   transform: translateY(-40%);
   pointer-events: none;
@@ -102,7 +102,7 @@
 
 .play-count {
   top: 50%;
-  right: clamp(1.25rem, 5vw, 5.5rem);
+  right: clamp(6rem, 8vw, 9rem);
   display: grid;
   justify-items: end;
   margin: 0;

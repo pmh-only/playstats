@@ -14,7 +14,7 @@ export default function SiteMenu({ homeHref = "/", statsHref = "/all" }) {
       href: statsHref,
       ariaLabel: "View all listening statistics",
       rotation: 4,
-      hoverStyles: { bgColor: "#f4f1e8", textColor: "#080908" },
+      hoverStyles: { bgColor: "#b8ff57", textColor: "#080908" },
     },
   ];
 
