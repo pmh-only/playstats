@@ -281,7 +281,7 @@ class ArcballControl {
       quat.identity(this.smoothedRotation);
     }
 
-    const rotationW = Math.max(-1, Math.min(1, this.smoothedRotation[3]));
+    const rotationW = Math.max(0, Math.min(1, Math.abs(this.smoothedRotation[3])));
     const radians = Math.acos(rotationW) * 2;
     const sine = Math.sin(radians / 2);
     let velocity = 0;
