@@ -55,27 +55,6 @@
   text-transform: uppercase;
 }
 
-.axis {
-  position: absolute;
-  z-index: 2;
-  background: rgba(184, 255, 87, 0.2);
-  pointer-events: none;
-}
-
-.axis-horizontal {
-  top: 50%;
-  right: 1.25rem;
-  left: 1.25rem;
-  height: 1px;
-}
-
-.axis-vertical {
-  top: 1.25rem;
-  bottom: 1.25rem;
-  left: 50%;
-  width: 1px;
-}
-
 .album-details {
   position: absolute;
   top: 0;
@@ -305,10 +284,6 @@
   }
 
   .instructions {
-    display: none;
-  }
-
-  .axis {
     display: none;
   }
 

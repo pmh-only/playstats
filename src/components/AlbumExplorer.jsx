@@ -57,9 +57,6 @@ export default function AlbumExplorer({ albums, error }) {
         onItemSelect={setSelectedAlbum}
       />
 
-      <div className="axis axis-horizontal" aria-hidden="true" />
-      <div className="axis axis-vertical" aria-hidden="true" />
-
       {selectedAlbum && (
         <aside
           className="album-details"
