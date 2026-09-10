@@ -45,35 +45,6 @@ export default function SiteMenu({ homeHref = "/", statsHref = "/all" }) {
       rotation: -3,
       hoverStyles: { bgColor: "#b8ff57", textColor: "#080908" },
     },
-    {
-      label: "search",
-      href: `/search${query}`,
-      ariaLabel: "Search the listening archive",
-      rotation: 2,
-      hoverStyles: { bgColor: "#b8ff57", textColor: "#080908" },
-    },
-    {
-      label: "affinity",
-      href: `/affinity${query}`,
-      ariaLabel: "Compare listening affinity",
-      rotation: -2,
-      hoverStyles: { bgColor: "#b8ff57", textColor: "#080908" },
-    },
-    {
-      label: "share",
-      href: "#share",
-      ariaLabel: "Share this page",
-      rotation: 2,
-      hoverStyles: { bgColor: "#b8ff57", textColor: "#080908" },
-      onClick: (event) => {
-        event.preventDefault();
-        if (navigator.share) {
-          navigator.share({ title: document.title, url: window.location.href });
-        } else {
-          navigator.clipboard.writeText(window.location.href);
-        }
-      },
-    },
   ];
 
   return (

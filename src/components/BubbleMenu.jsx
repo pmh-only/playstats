@@ -172,7 +172,6 @@ export default function BubbleMenu({
                 <a
                   role="menuitem"
                   href={item.href}
-                  onClick={item.onClick}
                   aria-label={item.ariaLabel || item.label}
                   className="pill-link"
                   style={{
