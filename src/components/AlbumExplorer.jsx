@@ -28,6 +28,21 @@ export default function AlbumExplorer({ albums, error }) {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [selectedAlbum]);
 
+  const toggleAlbumDetails = (album) => {
+    setSelectedAlbum((selected) => (selected?.id === album.id ? null : album));
+  };
+
+  const closeDetailsOutside = (event) => {
+    if (
+      !selectedAlbum ||
+      event.target.closest(".album-details, .view-album, .globe-navigation")
+    ) {
+      return;
+    }
+    event.stopPropagation();
+    setSelectedAlbum(null);
+  };
+
   if (error) {
     return (
       <main className="error-state">
@@ -38,7 +53,7 @@ export default function AlbumExplorer({ albums, error }) {
   }
 
   return (
-    <main className="album-explorer">
+    <main className="album-explorer" onClickCapture={closeDetailsOutside}>
       <header className="site-header">
         <a href="/" className="wordmark" aria-label="Playstats home">
           PLAY/STATS
@@ -54,7 +69,11 @@ export default function AlbumExplorer({ albums, error }) {
         items={menuItems}
         scale={1.08}
         backgroundColor="#080908"
-        onItemSelect={setSelectedAlbum}
+        selectedItemId={selectedAlbum?.id}
+        onItemSelect={toggleAlbumDetails}
+        onMovementChange={(moving) => {
+          if (moving) setSelectedAlbum(null);
+        }}
       />
 
       {selectedAlbum && (
@@ -66,14 +85,6 @@ export default function AlbumExplorer({ albums, error }) {
             <span className="details-rank">
               Album {String(selectedAlbum.rank).padStart(2, "0")}
             </span>
-            <button
-              type="button"
-              className="close-details"
-              onClick={() => setSelectedAlbum(null)}
-              aria-label="Close track list"
-            >
-              Close
-            </button>
           </div>
 
           <div className="album-summary">

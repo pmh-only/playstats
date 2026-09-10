@@ -313,6 +313,7 @@ class InfiniteGridMenu {
   smoothedRotationVelocity = 0;
   movementActive = false;
   frameRequest = 0;
+  targetIndex = null;
 
   constructor(canvas, items, onActiveItemChange, onMovementChange, scale) {
     this.canvas = canvas;
@@ -599,6 +600,21 @@ class InfiniteGridMenu {
     );
   }
 
+  navigate(offset) {
+    const currentIndex = this.targetIndex ?? this.findNearestVertexIndex();
+    this.targetIndex =
+      (currentIndex + offset + this.items.length) % this.items.length;
+    this.onActiveItemChange(this.targetIndex);
+    this.control.snapTargetDirection = vec3.normalize(
+      vec3.create(),
+      vec3.transformQuat(
+        vec3.create(),
+        this.instancePositions[this.targetIndex],
+        this.control.orientation,
+      ),
+    );
+  }
+
   onControlUpdate(deltaTime) {
     const timeScale = deltaTime / this.targetFrameDuration + 0.0001;
     let damping = 5 / timeScale;
@@ -612,8 +628,8 @@ class InfiniteGridMenu {
     }
 
     if (!this.control.isPointerDown) {
-      const nearestIndex = this.findNearestVertexIndex();
-      this.onActiveItemChange(nearestIndex % this.items.length);
+      const nearestIndex = this.targetIndex ?? this.findNearestVertexIndex();
+      this.onActiveItemChange(nearestIndex);
       this.control.snapTargetDirection = vec3.normalize(
         vec3.create(),
         vec3.transformQuat(
@@ -622,7 +638,17 @@ class InfiniteGridMenu {
           this.control.orientation,
         ),
       );
+      if (
+        this.targetIndex !== null &&
+        vec3.squaredDistance(
+          this.control.snapTargetDirection,
+          this.control.snapDirection,
+        ) < 0.0001
+      ) {
+        this.targetIndex = null;
+      }
     } else {
+      this.targetIndex = null;
       targetZ += this.control.rotationVelocity * 80 + 2.5;
       damping = 7 / timeScale;
     }
@@ -665,9 +691,12 @@ export default function InfiniteMenu({
   items = [],
   scale = 1,
   backgroundColor = "#080908",
+  selectedItemId,
   onItemSelect,
+  onMovementChange,
 }) {
   const canvasRef = useRef(null);
+  const menuRef = useRef(null);
   const [activeItem, setActiveItem] = useState(null);
   const [isMoving, setIsMoving] = useState(false);
   const [webglError, setWebglError] = useState(false);
@@ -680,9 +709,13 @@ export default function InfiniteMenu({
         canvasRef.current,
         items,
         (index) => setActiveItem(items[index]),
-        setIsMoving,
+        (moving) => {
+          setIsMoving(moving);
+          onMovementChange?.(moving);
+        },
         scale,
       );
+      menuRef.current = menu;
       menu.run();
     } catch (error) {
       console.error(error);
@@ -694,6 +727,7 @@ export default function InfiniteMenu({
     return () => {
       window.removeEventListener("resize", resize);
       menu?.destroy();
+      if (menuRef.current === menu) menuRef.current = null;
     };
   }, [items, scale]);
 
@@ -742,12 +776,34 @@ export default function InfiniteMenu({
             type="button"
             className={`view-album ${isMoving ? "inactive" : "active"}`}
             onClick={() => onItemSelect?.(activeItem)}
+            aria-expanded={selectedItemId === activeItem.id}
           >
-            <span>View tracks</span>
-            <span aria-hidden="true">↗</span>
+            <span>
+              {selectedItemId === activeItem.id ? "Close tracks" : "View tracks"}
+            </span>
+            <span aria-hidden="true">
+              {selectedItemId === activeItem.id ? "×" : "↗"}
+            </span>
           </button>
         </>
       )}
+
+      <button
+        type="button"
+        className="globe-navigation previous"
+        onClick={() => menuRef.current?.navigate(-1)}
+        aria-label="Previous album"
+      >
+        <span aria-hidden="true">←</span>
+      </button>
+      <button
+        type="button"
+        className="globe-navigation next"
+        onClick={() => menuRef.current?.navigate(1)}
+        aria-label="Next album"
+      >
+        <span aria-hidden="true">→</span>
+      </button>
     </div>
   );
 }

@@ -92,32 +92,12 @@
 }
 
 .details-heading {
-  grid-template-columns: 1fr auto;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid #30342d;
 }
 
 .details-rank {
   color: #b8ff57;
-}
-
-.close-details {
-  padding: 0;
-  border: 0;
-  border-bottom: 1px solid currentColor;
-  background: transparent;
-  color: #f4f1e8;
-  font-family: "DM Mono", monospace;
-  font-size: 0.64rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-.close-details:hover,
-.close-details:focus-visible {
-  color: #b8ff57;
-  outline: none;
 }
 
 .album-summary {
