@@ -4,7 +4,7 @@ export default function SiteMenu({ homeHref = "/", statsHref = "/all" }) {
   const query = statsHref.includes("?") ? statsHref.slice(statsHref.indexOf("?")) : "";
   const items = [
     {
-      label: "albums",
+      label: "globe",
       href: homeHref,
       ariaLabel: "Explore top albums",
       rotation: -4,
@@ -32,7 +32,7 @@ export default function SiteMenu({ homeHref = "/", statsHref = "/all" }) {
       hoverStyles: { bgColor: "#b8ff57", textColor: "#080908" },
     },
     {
-      label: "top albums",
+      label: "albums",
       href: `/top/albums${query}`,
       ariaLabel: "View ranked albums",
       rotation: 3,
