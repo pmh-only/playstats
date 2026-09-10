@@ -131,9 +131,7 @@ function ActivityChart({ data, period, timezone }) {
             cy={y(entry.plays)}
             r="3"
           >
-            <title>
-              {formatTick(entry.date)}: {entry.plays.toLocaleString()} plays
-            </title>
+            <title>{`${formatTick(entry.date)}: ${entry.plays.toLocaleString()} plays`}</title>
           </circle>
         ))}
       </svg>
@@ -185,9 +183,7 @@ function HourChart({ data }) {
             height={height - margin.bottom - y(entry.plays)}
             rx="2"
           >
-            <title>
-              {String(entry.hour).padStart(2, "0")}:00: {entry.plays.toLocaleString()} plays
-            </title>
+            <title>{`${String(entry.hour).padStart(2, "0")}:00: ${entry.plays.toLocaleString()} plays`}</title>
           </rect>
         ))}
         {data
