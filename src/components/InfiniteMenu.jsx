@@ -762,11 +762,10 @@ export default function InfiniteMenu({
       <Particles
         className="menu-particles"
         particleColors={backgroundParticleColors}
-        particleCount={120}
-        particleSpread={12}
-        speed={0.04}
-        particleBaseSize={60}
-        alphaParticles
+        particleCount={200}
+        particleSpread={10}
+        speed={0.1}
+        particleBaseSize={120}
       />
       <canvas
         ref={canvasRef}
