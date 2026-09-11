@@ -8,6 +8,13 @@ interface StatsUser {
   };
 }
 
+export interface SpotifyUser {
+  _id: ObjectId;
+  accessToken?: string | null;
+  refreshToken?: string | null;
+  expiresIn?: number;
+}
+
 let clientPromise: Promise<MongoClient> | undefined;
 
 export async function getDatabase(): Promise<Db> {
@@ -29,6 +36,28 @@ export async function findStatsUser(
 ): Promise<StatsUser | null> {
   const users = database.collection<StatsUser>("users");
   const projection = { _id: 1, "settings.timezone": 1 };
+
+  if (publicToken) {
+    return users.findOne({ publicToken }, { projection });
+  }
+
+  const matches = await users.find({}, { projection }).limit(2).toArray();
+  return matches.length === 1 ? matches[0] : null;
+}
+
+export async function findSpotifyUser(
+  database: Db,
+  publicToken?: string,
+): Promise<SpotifyUser | null> {
+  const users = database.collection<SpotifyUser & { publicToken?: string | null }>(
+    "users",
+  );
+  const projection = {
+    _id: 1,
+    accessToken: 1,
+    refreshToken: 1,
+    expiresIn: 1,
+  };
 
   if (publicToken) {
     return users.findOne({ publicToken }, { projection });

@@ -1,4 +1,5 @@
 import BubbleMenu from "./BubbleMenu";
+import NowPlaying from "./NowPlaying";
 
 export default function SiteMenu({ homeHref = "/", statsHref = "/all" }) {
   const query = statsHref.includes("?") ? statsHref.slice(statsHref.indexOf("?")) : "";
@@ -41,19 +42,22 @@ export default function SiteMenu({ homeHref = "/", statsHref = "/all" }) {
   ];
 
   return (
-    <BubbleMenu
-      logo={
-        <a href={homeHref} className="bubble-wordmark" aria-label="Playstats home">
-          PLAY/STATS
-        </a>
-      }
-      items={items}
-      menuAriaLabel="Toggle Playstats navigation"
-      menuBg="#f4f1e8"
-      menuContentColor="#080908"
-      useFixedPosition
-      animationDuration={0.45}
-      staggerDelay={0.1}
-    />
+    <>
+      <BubbleMenu
+        logo={
+          <a href={homeHref} className="bubble-wordmark" aria-label="Playstats home">
+            PLAY/STATS
+          </a>
+        }
+        items={items}
+        menuAriaLabel="Toggle Playstats navigation"
+        menuBg="#f4f1e8"
+        menuContentColor="#080908"
+        useFixedPosition
+        animationDuration={0.45}
+        staggerDelay={0.1}
+      />
+      <NowPlaying endpoint={`/data/now-playing${query}`} />
+    </>
   );
 }
