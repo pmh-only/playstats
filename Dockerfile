@@ -1,6 +1,6 @@
 FROM ghcr.io/pnpm/pnpm:11.5.1 AS base
 
-RUN pnpm runtime set node 24 -g
+RUN pnpm runtime set node 24.22.1 -g
 
 FROM base AS build
 
